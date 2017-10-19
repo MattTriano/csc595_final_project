@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!-- https://bl.ocks.org/mbostock/2206590 -->
+<!-- https://bl.ocks.org/rhuille/c4c89a3475d23d6f52d15f5cc76f4856 -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Setting path fills dynamically to generate a choropleth</title>
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="//d3js.org/d3-geo-projection.v1.min.js"></script>
+		<!-- <script src="https://unpkg.com/topojson-client@3"></script> -->
+		<style type="text/css">
+			/* No style rules here yet */		
+			path {
+				stroke: #000;
+				stroke-width: 0.2px;
+			}
+			svg {
+				background-color: #a7cdf2;	
+			}
+
+			.background {
+				fill: none;
+				pointer-events: all;
+			}
+			.feature.active {
+				fill: orange;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Width and height
+			var w = 980;
+			var h = 500;
+			var active = d3.select(null);
+
+			//Define map projection
+			var projection = d3.geoNaturalEarth();
+
+			//Define path generator
+			var path = d3.geoPath()
+							 .projection(projection);
+							 
+			//Define quantize scale to sort data values into buckets of color
+			var color = d3.scaleQuantize()
+								.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+								// .range(["rgb(252,187,161)","rgb(252,146,114)","rgb(251,106,74)","rgb(239,59,44)","rgb(203,24,29)"]);
+								//Colors derived from ColorBrewer, by Cynthia Brewer, and included in
+								//https://github.com/d3/d3-scale-chromatic
+
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			svg.append("rect")
+				.attr("class", "background")
+				.attr("width", w)
+				.attr("height", h)
+				.on("click", reset);
+
+			var g = svg.append("g")
+						.style("stroke-width", "1.5px");
+
+			//Load in agriculture data
+			d3.csv("WHO_mortality_data/Ischaemic_heart_disease_2015.csv", function(data) {
+				console.log(data);
+
+				//Set input domain for color scale
+				color.domain([
+					d3.min(data, function(d) { return d.ihd_deaths; }),
+					d3.max(data, function(d) { return d.ihd_deaths; })
+				]);
+
+				//Load in GeoJSON data
+				d3.json("countries_geo.json", function(json) {
+					console.log(json);
+
+					//Merge the ag. data and GeoJSON
+					//Loop through once for each ag. data value
+					for (var i = 0; i < data.length; i++) {
+				
+						//Grab state name
+						var dataCtry = data[i].country;
+						
+						//Grab data value, and convert from string to float
+						var dataValue = parseFloat(data[i].ihd_deaths);
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonCtry = json.features[j].id;
+							if (dataCtry == jsonCtry) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}
+					}
+
+					//Bind data and create one path per GeoJSON feature
+					g.selectAll("path")
+					   .data(json.features)
+					   .enter()
+					   .append("path")
+					   .attr("d", path)
+					   .style("fill", function(d) {
+					   		//Get data value
+					   		var value = d.properties.value;
+					   		
+					   		if (value) {
+					   			//If value exists…
+						   		return color(value);
+					   		} else {
+					   			//If value is undefined…
+						   		return "#ccc";
+					   		}
+					   })
+					   .on("click", clicked);
+			
+				});
+			
+			});
+
+			function clicked(d) {
+				if (active.node() === this) return reset();
+				active.classed("active", false);
+				active = d3.select(this).classed("active", true);
+
+				var bounds = path.bounds(d),
+					dx = bounds[1][0] - bounds[0][0],
+					dy = bounds[1][1] - bounds[0][1],
+					x = (bounds[0][0] + bounds[1][0]) / 2,
+					y = (bounds[0][1] + bounds[1][1]) / 2,
+					scale = .9 / Math.max(dx / w, dy / h),
+					translate = [w / 2 - scale * x, h / 2 - scale * y];
+
+				g.transition()
+					.duration(750)
+					.style("stroke-width", 1.5 / scale + "px")
+					.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+			}
+
+			function reset() {
+				active.classed("active", false);
+				active = d3.select(null);
+
+				g.transition()
+					.duration(750)
+					.style("stroke-width", "1.5px")
+					.attr("transform", "");
+			}
+
+
+			// function clicked(d) {
+			// 	var x, y, k;
+
+			// 	if (d && centered !== d) {
+			// 		var centroid = path.centroid(d);
+			// 		x = centroid[0];
+			// 		y = centroid[1];
+			// 		k = 4;
+			// 		centered = d;
+			// 	} else {
+			// 		x = w / 2;
+			// 		y = h / 2;
+			// 		k = 1;
+			// 		centered = null;
+			// 	}
+
+			// 	g.selectAll("path")
+			// 		.classed("active", centered && function(d) { return d === centered; });
+
+			// 	g.transition()
+			// 		.duration(750)
+			// 		.attr("transform", "translate(" + w / 2 + "," + h / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+			// 		.style("stroke-width", 1.5 / k + "px");
+			// }
+			
+		</script>
+	</body>
+</html>
