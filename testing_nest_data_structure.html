@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!-- https://bl.ocks.org/mbostock/2206590 -->
+<!-- https://bl.ocks.org/rhuille/c4c89a3475d23d6f52d15f5cc76f4856 -->
+<!-- python -m http.server 8888 &. -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Setting path fills dynamically to generate a choropleth</title>
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="//d3js.org/d3-geo-projection.v1.min.js"></script>
+		<!-- <script src="https://unpkg.com/topojson-client@3"></script> -->
+		<style type="text/css">
+			/* No style rules here yet */		
+			path {
+				stroke: #000;
+				stroke-width: 0.2px;
+			}
+			svg {
+				background-color: #a7cdf2;	
+			}
+
+			.background {
+				fill: none;
+				pointer-events: all;
+			}
+			.feature.active {
+				fill: orange;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+						//Load in agriculture data
+			d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages.csv", function(data) {
+				console.log(data);
+
+				
+
+				// This loads the data into a tree structure
+				var mort_data = d3.nest()
+					.key( function(d) { return d.causename; } ).sortKeys(d3.descending)
+					.key( function(d) { return d.iso3; } ).sortKeys(d3.descending)
+					.key( function(d) { return d.sex; } ).sortKeys(d3.ascending)
+					.entries(data);
+
+				console.log(mort_data);
+
+				
+				
+			
+			});
+					
+		</script>
+	</body>
+</html>
