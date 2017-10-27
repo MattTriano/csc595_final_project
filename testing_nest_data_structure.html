@@ -6,6 +6,7 @@
 <!-- to a parent directory of the files you want to run and enter -->
 <!-- "python -m http.server 8888 &."  (everything between "")-->
 <!-- then go to Chrome and enter "localhost:8888" in the URL bar -->
+<!-- http://data-map-d3.readthedocs.io/en/latest/steps/step_04.html#step-04 -->
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -22,6 +23,21 @@
 			}
 			svg {
 				background-color: #a7cdf2;	
+			}
+			g.features {
+				stroke: #d8d8d8;
+				stroke-width: 0.5;
+			}
+			g.features path:hover {
+				opacity: 0.5;
+			}
+			.tooltip {
+				font-weight: bold;
+				padding: 0.5rem;
+				border: 1px solid silver;
+			}
+			.hidden {
+				display: none;
 			}
 
 			.background {
@@ -267,6 +283,8 @@
 		<div id="choropleth"></div>
 		<script type="text/javascript">
 
+			var currentKey = 'All_Causes';
+
 			//Width and height
 			var w = 980;
 			var h = 500;
@@ -275,16 +293,27 @@
 			var map_data;
 
 			//Create SVG element
-			var svg = d3.select("#choropleth")
-						.append("svg")
-						.attr("width", w)
-						.attr("height", h);
+			var svg = d3.select('#choropleth')
+						.append('svg')
+						.attr('width', w)
+						.attr('height', h);
 
 			// var g = svg.append("g")
 			// 			.style("stroke-width", "1.5px");
 
+			var mapFeatures = svg.append('g')
+					.attr('class', 'features YlGnBu');
+
+			// We add a <div> container for the tooltip, which is hidden by default.
+			var tooltip = d3.select("#choropleth")
+							.append("div")
+							.attr("class", "tooltip hidden");
+
 			//Define map projection
 			var projection = d3.geoNaturalEarth().scale(175);
+
+			// initializing a mapping for the data
+			var mort_data = d3.map();
 
 			//Define path generator
 			var path = d3.geoPath()
@@ -310,7 +339,7 @@
 			d3.json("countries_geo.json", function(json) {
 				console.log(json);
 
-				d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages.csv", function(data) {
+				d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
 					console.log(data);
 
 					map_data = data;
@@ -319,10 +348,24 @@
 					var mort_data = d3.nest()
 							.key( function(d) { return d.causename; } ).sortKeys(d3.descending)
 							.key( function(d) { return d.iso3; } ).sortKeys(d3.descending)
-							.key( function(d) { return d.sex; } ).sortKeys(d3.ascending)
+							// .key( function(d) { return d.sex; } ).sortKeys(d3.ascending)
 							.rollup( function(d) { return d[0]; })
 							.map(data);
 					console.log(mort_data);	
+
+					// mapFeatures.selectAll('path')
+					// 	// ... and then enter the data. For each feature, a <path>
+					// 	// element is added.
+					// 	.data(features.features)
+					// 	.enter().append('path')
+					// 	// As "d" attribute, we set the path of the feature.
+					// 	.attr('d', path);
+					// 	// When the mouse moves over a feature, show the tooltip.
+					// 	// .on('mousemove', showTooltip)
+					// 	// // When the mouse moves out of a feature, hide the tooltip.
+					// 	// .on('mouseout', hideTooltip)
+					// 	// // When a feature is clicked, show the details of it.
+					// 	// .on('click', showDetails);
 
 					svg.append('g')
 						 .attr('class', 'features YlGnBu')
@@ -330,7 +373,9 @@
 						 .data(json.features)
 					   .enter().append('path')
 					   	 .attr('class', function(d) {
-					   	 	return classes(mort_data[d.properties.iso3].All_Causes);
+					   	 	// return classes(getValueOfData(mort_data[getIdOfFeature(d)]));
+					   	 	// return classes(mort_data[currentKey].iso3);
+					   	 	return classes(mort_data[d.features.id].All_Causes);
 					   	 })
 					   	 .attr('d', path);
 
@@ -398,6 +443,35 @@
 					.duration(750)
 					.style("stroke-width", 1.5 / scale + "px")
 					.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+			}
+
+			function showTooltip(f) {
+				// Get the ID of the feature.
+				var id = getIdOfFeature(f);
+				// Use the ID to get the data entry.
+				var d = dataById[id];
+				// Get the current mouse position (as integer)
+				var mouse = d3.mouse(d3.select('#choropleth').node()).map(
+					function(d) { return parseInt(d); }
+				);
+				// Calculate the absolute left and top offsets of the tooltip. If the
+				// mouse is close to the right border of the map, show the tooltip on
+				// the left.
+				var left = Math.min(w - 4 * d.country_name.length, mouse[0] + 5);
+				var top = mouse[1] + 25;
+				// Show the tooltip (unhide it) and set the name of the data entry.
+				// Set the position as calculated before.
+				tooltip.classed('hidden', false)
+				.attr("style", "left:" + left + "px; top:" + top + "px")
+				.html(d.name);
+			}
+
+			function getValueOfData(d) {
+				return +d[currentKey];
+			}
+
+			function getIdOfFeature(f) {
+				return f.features.id;
 			}
 
 			function reset() {
