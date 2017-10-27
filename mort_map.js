@@ -1,6 +1,11 @@
+// Useful reading
+// On accessing nested data: https://bost.ocks.org/mike/nest/
+
 // Setting height and width (should match the CSS)
 var w = 1100;
 var h = 600;
+
+var ctry_color;
 
 var svg = d3.select('#choropleth').append('svg')
 			.attr('width', w)
@@ -14,6 +19,20 @@ var projection = d3.geoNaturalEarth()
 var path = d3.geoPath()
 				.projection(projection);
 
+var color_fill = d3.scaleThreshold()
+	.domain([1,2000])
+	.range(['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']);
+	// .unknown();
+
+// Initializing an object to store data broken down by country
+var data_by_country = d3.map();
+
+var color_class = d3.scaleQuantize()
+					.domain([1,1700])
+					.range(d3.range(7).map(function(i) {
+						return 'q' + i + '-7'; 
+					}));
+
 d3.json("countries_geo.json", function(geojson) {
 	console.log(geojson);
 
@@ -24,14 +43,51 @@ d3.json("countries_geo.json", function(geojson) {
 				.center(map_scale.center)
 				.translate([w/2, h/2]);
 
-	svg.append('g')
-		 .attr('class', 'features')
-	  .selectAll('path')
-	  	.data(geojson.features)
-	  .enter().append('path')
-	  	.attr('d', path);
+	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
+		console.log(data);
+
+		// data_by_country = d3.nest()
+		// 		.key( function(d) { return d.iso3; } ).sortKeys(d3.descending)
+		// 		.key( function(d) { return d.causename; } ).sortKeys(d3.descending)
+		// 		.rollup( function(d) { return d[0]; })
+		// 		.map(data);
+		data_by_country = d3.nest()
+				.key( function(d) { return d.iso3; } )
+				.key( function(d) { return d.causename; } )
+				.rollup( function(d) { return d[0]; })
+				.map(data);
+		console.log(data_by_country);
+		console.log(data_by_country['$ZWE']['$All_Causes']);
+
+		svg.append('g')
+			 .attr('class', 'features.id')
+		  .selectAll('path')
+		  	.data(geojson.features)
+		  .enter().append('path')
+		  	.attr('d', path)
+		  	.attr('fill', function(d) { 
+		  		// console.log(d.id);
+		  		console.log(parseInt((data_by_country['$'.concat(d.id)] && 
+		  					data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); // this seems like a hack.
+		  		// return 1; 
+		  		ctry_color = (data_by_country['$'.concat(d.id)] && 
+		  					data_by_country['$'.concat(d.id)]['$All_Causes']['2000']); 
+		  		console.log(ctry_color);
+		  		if (typeof ctry_color != 'undefined') {
+		  			console.log(color_fill(ctry_color));
+		  			return color_fill(ctry_color);
+		  		} else {
+		  			return '#808080';
+		  		};
+		  		// return color_fill(parseInt((data_by_country['$'.concat(d.id)] && 
+		  					// data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); 
+		  	});
+		  	
+	});
 
 });
+// w/o rollup:  key: "ZWE", values: array(1), 0: <data>
+// w/ rollup:  key: "ZWE", values: <data>
 
 // This function takes a geojson object and determines appropriate
 // scale and center coordinates based on the extents of the geojson
