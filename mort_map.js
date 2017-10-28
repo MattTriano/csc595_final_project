@@ -14,8 +14,8 @@ var current_key = 'All_Causes';
 var current_year = '2000';
 
 var svg = d3.select('#choropleth').append('svg')
-			.attr('width', w)
-			.attr('height', h);
+			.attr('preserveAspectRatio', 'xMidYMid')
+			.attr('viewBox', '0 0 ' + w + ' ' + h);
 
 var tooltip = d3.select("#choropleth")
   .append("div")
@@ -41,6 +41,9 @@ var color_fill = d3.scaleQuantize()
 // Initializing an object to store data broken down by country
 var data_by_country = d3.map();
 
+// Initializing a variable to hold CSV data
+var map_data
+
 var color_class = d3.scaleQuantize()
 					.domain([1,1700])
 					.range(d3.range(7).map(function(i) {
@@ -58,7 +61,8 @@ d3.json("countries_geo.json", function(geojson) {
 				.translate([w/2, h/2]);
 
 	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
-		console.log(data);
+
+		map_data = data;
 
 		// data_by_country = d3.nest()
 		// 		.key( function(d) { return d.iso3; } ).sortKeys(d3.descending)
@@ -80,36 +84,27 @@ d3.json("countries_geo.json", function(geojson) {
 				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
 		]);
 
-		// svg.append('g')
-		// 	 .attr('class', 'features.id')
 		  map_features.selectAll('path')
-		  	.data(geojson.features)
-		  .enter().append('path')
-		  	.attr('d', path)
-		  	.attr('fill', function(d) { 
-		  		// console.log(parseInt((data_by_country['$'.concat(d.id)] && 
-		  					// data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); // this seems like a hack.
-		  		// this redundent '&&' pattern prevents missing values from throwing errors
-		  		// when data produces an 'undefined' result (eg. Palestine isn't in this dataset
-		  		// but it is on the map, so it throws an error if we try to select deaths in
-		  		// Palestine in year 2000, for example)
-		  		// console.log(d.id);
-		  		ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
-		  		// console.log(ctry_color);
-		  		if (typeof ctry_color != 'undefined') {
-		  			// console.log(color_fill(ctry_color));
-		  			return color_fill(ctry_color);
-		  		} else {
-		  			return '#808080';
-		  		};
-		  	})
-		  	.on("click", clicked)
-		  	.on('mousemove', show_tooltip)
-		  	.on('mouseout', hide_tooltip);
-		  	
+		  				.data(geojson.features)
+		  			  .enter().append('path')
+		  			  	.attr('d', path)
+		  			  	.attr('fill', function(d) { 
+		  			  		ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
+		  			  		if (typeof ctry_color != 'undefined') {
+		  			  			return color_fill(ctry_color);
+		  			  		} else {
+		  			  			return '#808080';  // Returns grey if the color is undefined (ie no data)
+		  			  		};
+		  			  	})
+		  			  	.on("click", clicked)
+		  			  	.on('mousemove', show_tooltip)
+		  			  	.on('mouseout', hide_tooltip);
 	});
-
 });
+
+function update_map_colors() {
+	
+}
 
 function clicked(d) {
 	if (active.node() === this) return reset();
@@ -146,10 +141,10 @@ function show_tooltip(f) {
   var mouse = d3.mouse(d3.select('#choropleth').node()).map(
   	function(d) { return parseInt(d); 
   });
-  console.log(mouse);
-  console.log(d);
-  console.log(get_country_name(d));
-  console.log(d.country_name);
+  // console.log(mouse);
+  // console.log(d);
+  // console.log(get_country_name(d));
+  // console.log(d.country_name);
 
   var left = Math.min( w - 4 * get_country_name(d).length, mouse[0] + 5);
   var top = mouse[1] + 25;
@@ -171,6 +166,10 @@ function hide_tooltip() {
 //     .style("stroke-width", 0.5 / d3.event.scale + "px");
 // }
 
+// this redundent '&&' pattern prevents missing values from throwing errors
+// when data produces an 'undefined' result (eg. Palestine isn't in this dataset
+// but it is on the map, so it throws an error if we try to select deaths in
+// Palestine in year 2000, for example)
 function get_country_name(d) {
 	return d && d['$'.concat(current_key)].country_name;
 }
@@ -179,9 +178,6 @@ function get_value_of_datum(d) {
 	// console.log(d);
 	return d && d['$'.concat(current_key)][current_year];
 }
-
-// w/o rollup:  key: "ZWE", values: array(1), 0: <data>
-// w/ rollup:  key: "ZWE", values: <data>
 
 // This function takes a geojson object and determines appropriate
 // scale and center coordinates based on the extents of the geojson
