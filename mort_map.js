@@ -41,8 +41,15 @@ var color_fill = d3.scaleQuantize()
 // Initializing an object to store data broken down by country
 var data_by_country = d3.map();
 
-// Initializing a variable to hold CSV data
-var map_data
+// Initializing a variable to hold CSV and geojson data
+var map_data;
+var geojson_data;
+
+d3.select('#select-key').on('change', function(a) {
+  // Change the current key and call the function to update the colors.
+  currentKey = d3.select(this).property('value');
+  update_map_colors();
+});
 
 var color_class = d3.scaleQuantize()
 					.domain([1,1700])
@@ -54,6 +61,7 @@ d3.json("countries_geo.json", function(geojson) {
 	console.log(geojson);
 
 	var map_scale =  map_scaler(geojson);
+	geojson_data = geojson;
 	console.log(map_scale);
 
 	projection.scale(map_scale.scale)
@@ -64,46 +72,51 @@ d3.json("countries_geo.json", function(geojson) {
 
 		map_data = data;
 
-		// data_by_country = d3.nest()
-		// 		.key( function(d) { return d.iso3; } ).sortKeys(d3.descending)
-		// 		.key( function(d) { return d.causename; } ).sortKeys(d3.descending)
-		// 		.rollup( function(d) { return d[0]; })
-		// 		.map(data);
 		data_by_country = d3.nest()
 				.key( function(d) { return d.iso3; } )
 				.key( function(d) { return d.causename; } )
 				.rollup( function(d) { return d[0]; })
 				.map(data);
 		console.log(data_by_country);
-		// console.log(data_by_country['$ZWE']['$All_Causes']);
 
-		color_fill.domain([
-			d3.min(geojson.features, function(d) { 
-				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); }),
-			d3.max(geojson.features, function(d) { 
-				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
-		]);
+		
 
-		  map_features.selectAll('path')
-		  				.data(geojson.features)
-		  			  .enter().append('path')
-		  			  	.attr('d', path)
-		  			  	.attr('fill', function(d) { 
-		  			  		ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
-		  			  		if (typeof ctry_color != 'undefined') {
-		  			  			return color_fill(ctry_color);
-		  			  		} else {
-		  			  			return '#808080';  // Returns grey if the color is undefined (ie no data)
-		  			  		};
-		  			  	})
-		  			  	.on("click", clicked)
-		  			  	.on('mousemove', show_tooltip)
-		  			  	.on('mouseout', hide_tooltip);
+		map_features.selectAll('path')
+		  			  .data(geojson.features)
+		  			.enter().append('path')
+		  			  .attr('d', path)
+		  			  // .attr('fill', function(d) { 
+		  			  // 	ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
+		  			  // 	if (typeof ctry_color != 'undefined') {
+		  			  // 		return color_fill(ctry_color);
+		  			  // 	} else {
+		  			  // 		return '#808080';  // Returns grey if the color is undefined (ie no data)
+		  			  // 	};
+		  			  // })
+		  			  .on("click", clicked)
+		  			  .on('mousemove', show_tooltip)
+		  			  .on('mouseout', hide_tooltip);
+
+		update_map_colors();
 	});
 });
 
 function update_map_colors() {
-	
+	color_fill.domain([
+			d3.min(geojson_data.features, function(d) { 
+				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); }),
+			d3.max(geojson_data.features, function(d) { 
+				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
+		]);
+	map_features.selectAll('path')
+				.attr('fill', function(d) { 
+					ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
+					if (typeof ctry_color != 'undefined') {
+						return color_fill(ctry_color);
+					} else {
+						return '#808080';  // Returns grey if the color is undefined (ie no data)
+					};
+				})
 }
 
 function clicked(d) {
@@ -141,17 +154,14 @@ function show_tooltip(f) {
   var mouse = d3.mouse(d3.select('#choropleth').node()).map(
   	function(d) { return parseInt(d); 
   });
-  // console.log(mouse);
-  // console.log(d);
-  // console.log(get_country_name(d));
-  // console.log(d.country_name);
-
-  var left = Math.min( w - 4 * get_country_name(d).length, mouse[0] + 5);
+  console.log(f);
+  var ctry_name = get_country_name(f)
+  var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
   var top = mouse[1] + 25;
   // Show the tooltip (unhide it) and set the name of the data entry.
   tooltip.classed('hidden', false)
   	.attr("style", "left:" + left + "px; top:" + top + "px")
-    .html(get_country_name(d));
+    .html(ctry_name);
 }
 
 function hide_tooltip() {
@@ -166,14 +176,24 @@ function hide_tooltip() {
 //     .style("stroke-width", 0.5 / d3.event.scale + "px");
 // }
 
+
+function get_country_name(f) {
+	// console.log(f);
+	// console.log(f.properties.name)
+	// this_ctry_name = f && f['$'.concat(current_key)].country_name;
+	this_ctry_name = f.properties.name;
+	if (typeof this_ctry_name != 'undefined') {
+		return this_ctry_name;
+	} else {
+		return 'Data Not Available';
+	}
+	// return d && d['$'.concat(current_key)].country_name;
+}
+
 // this redundent '&&' pattern prevents missing values from throwing errors
 // when data produces an 'undefined' result (eg. Palestine isn't in this dataset
 // but it is on the map, so it throws an error if we try to select deaths in
 // Palestine in year 2000, for example)
-function get_country_name(d) {
-	return d && d['$'.concat(current_key)].country_name;
-}
-
 function get_value_of_datum(d) {
 	// console.log(d);
 	return d && d['$'.concat(current_key)][current_year];
