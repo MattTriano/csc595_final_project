@@ -3,7 +3,7 @@
 
 // Setting height and width (should match the CSS)
 var w = 1100;
-var h = 600;
+var h = 580;
 var active = d3.select(null);
 
 var ctry_color;
@@ -16,6 +16,10 @@ var current_year = '2000';
 var svg = d3.select('#choropleth').append('svg')
 			.attr('width', w)
 			.attr('height', h);
+
+var tooltip = d3.select("#choropleth")
+  .append("div")
+  .attr("class", "tooltip hidden");
 
 // Setting the map projection
 var projection = d3.geoNaturalEarth()
@@ -67,7 +71,7 @@ d3.json("countries_geo.json", function(geojson) {
 				.rollup( function(d) { return d[0]; })
 				.map(data);
 		console.log(data_by_country);
-		console.log(data_by_country['$ZWE']['$All_Causes']);
+		// console.log(data_by_country['$ZWE']['$All_Causes']);
 
 		color_fill.domain([
 			d3.min(geojson.features, function(d) { 
@@ -83,23 +87,25 @@ d3.json("countries_geo.json", function(geojson) {
 		  .enter().append('path')
 		  	.attr('d', path)
 		  	.attr('fill', function(d) { 
-		  		console.log(parseInt((data_by_country['$'.concat(d.id)] && 
-		  					data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); // this seems like a hack.
+		  		// console.log(parseInt((data_by_country['$'.concat(d.id)] && 
+		  					// data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); // this seems like a hack.
 		  		// this redundent '&&' pattern prevents missing values from throwing errors
 		  		// when data produces an 'undefined' result (eg. Palestine isn't in this dataset
 		  		// but it is on the map, so it throws an error if we try to select deaths in
 		  		// Palestine in year 2000, for example)
-		  		console.log(d.id);
+		  		// console.log(d.id);
 		  		ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
-		  		console.log(ctry_color);
+		  		// console.log(ctry_color);
 		  		if (typeof ctry_color != 'undefined') {
-		  			console.log(color_fill(ctry_color));
+		  			// console.log(color_fill(ctry_color));
 		  			return color_fill(ctry_color);
 		  		} else {
 		  			return '#808080';
 		  		};
 		  	})
-		  	.on("click", clicked);
+		  	.on("click", clicked)
+		  	.on('mousemove', show_tooltip)
+		  	.on('mouseout', hide_tooltip);
 		  	
 	});
 
@@ -132,6 +138,41 @@ function reset() {
 		.duration(750)
 		.style("stroke-width", "1.5px")
 		.attr("transform", "");
+}
+
+function show_tooltip(f) {
+  var id = f.id;   // Get the ID of the feature.
+  var d = data_by_country['$'.concat(id)]; // Use the ID to get the data entry
+  var mouse = d3.mouse(d3.select('#choropleth').node()).map(
+  	function(d) { return parseInt(d); 
+  });
+  console.log(mouse);
+  console.log(d);
+  console.log(get_country_name(d));
+  console.log(d.country_name);
+
+  var left = Math.min( w - 4 * get_country_name(d).length, mouse[0] + 5);
+  var top = mouse[1] + 25;
+  // Show the tooltip (unhide it) and set the name of the data entry.
+  tooltip.classed('hidden', false)
+  	.attr("style", "left:" + left + "px; top:" + top + "px")
+    .html(get_country_name(d));
+}
+
+function hide_tooltip() {
+  tooltip.classed('hidden', true);
+}
+
+// function doZoom() {
+//   mapFeatures.attr("transform",
+//     "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
+//     // Keep the stroke width proportional. The initial stroke width
+//     // (0.5) must match the one set in the CSS.
+//     .style("stroke-width", 0.5 / d3.event.scale + "px");
+// }
+
+function get_country_name(d) {
+	return d && d['$'.concat(current_key)].country_name;
 }
 
 function get_value_of_datum(d) {

@@ -1,12 +1,40 @@
 body {
   margin: 25px;
 }
+path {
+	stroke: #000;
+	stroke-width: 0.1px;
+}
+g.features {
+  stroke: #d8d8d8;
+  stroke-width: 0.5;
+}
+g.features path:hover {
+  opacity: 0.5;
+}
+.tooltip {
+  font-weight: bold;
+  padding: 0.5rem;
+  border: 1px solid silver;
+  color: #222;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px 0px #a6a6a6;
+  opacity: 0.9;
+  position: absolute;
+}
+.hidden {
+  display: none;
+}
 
 #choropleth {
   width: 1100px;
-  height: 600px;
+  height: 580px;
   border: 1px solid silver;
   background: #E6E6E6;
+}
+svg {
+	background-color: #a7cdf2;	
 }
 
 .feature.active {
