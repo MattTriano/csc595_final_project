@@ -4,6 +4,7 @@
 // Setting height and width (should match the CSS)
 var w = 1100;
 var h = 600;
+var active = d3.select(null);
 
 var ctry_color;
 
@@ -23,6 +24,10 @@ var projection = d3.geoNaturalEarth()
 // Setting a path object and applying our projection
 var path = d3.geoPath()
 				.projection(projection);
+
+// Innitializing a grouping on the SVG 
+var map_features = svg.append('g')
+	.attr('class', 'features.id');
 
 var color_fill = d3.scaleQuantize()
 	// .domain([1,2000])
@@ -71,9 +76,9 @@ d3.json("countries_geo.json", function(geojson) {
 				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
 		]);
 
-		svg.append('g')
-			 .attr('class', 'features.id')
-		  .selectAll('path')
+		// svg.append('g')
+		// 	 .attr('class', 'features.id')
+		  map_features.selectAll('path')
 		  	.data(geojson.features)
 		  .enter().append('path')
 		  	.attr('d', path)
@@ -93,13 +98,41 @@ d3.json("countries_geo.json", function(geojson) {
 		  		} else {
 		  			return '#808080';
 		  		};
-		  		// return color_fill(parseInt((data_by_country['$'.concat(d.id)] && 
-		  					// data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); 
-		  	});
+		  	})
+		  	.on("click", clicked);
 		  	
 	});
 
 });
+
+function clicked(d) {
+	if (active.node() === this) return reset();
+	active.classed("active", false);
+	active = d3.select(this).classed("active", true);
+
+	var bounds = path.bounds(d),
+			dx = bounds[1][0] - bounds[0][0],
+			dy = bounds[1][1] - bounds[0][1],
+			x = (bounds[0][0] + bounds[1][0]) / 2,
+			y = (bounds[0][1] + bounds[1][1]) / 2,
+			scale = .9 / Math.max(dx / w, dy / h),
+			translate = [w / 2 - scale * x, h / 2 - scale * y];
+
+			map_features.transition()
+			 	.duration(750)
+			 	.style("stroke-width", 1.5 / scale + "px")
+			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+}
+
+function reset() {
+	active.classed("active", false);
+	active = d3.select(null);
+
+	map_features.transition()
+		.duration(750)
+		.style("stroke-width", "1.5px")
+		.attr("transform", "");
+}
 
 function get_value_of_datum(d) {
 	// console.log(d);
