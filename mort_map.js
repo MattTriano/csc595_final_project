@@ -7,6 +7,11 @@ var h = 600;
 
 var ctry_color;
 
+// Initializing a default key, and (temporarily, until I figure out a smart
+// way to handle time series data) year.
+var current_key = 'All_Causes';
+var current_year = '2000';
+
 var svg = d3.select('#choropleth').append('svg')
 			.attr('width', w)
 			.attr('height', h);
@@ -19,7 +24,7 @@ var projection = d3.geoNaturalEarth()
 var path = d3.geoPath()
 				.projection(projection);
 
-var color_fill = d3.scaleThreshold()
+var color_fill = d3.scaleQuantize()
 	.domain([1,2000])
 	.range(['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']);
 	// .unknown();
@@ -66,10 +71,12 @@ d3.json("countries_geo.json", function(geojson) {
 		  .enter().append('path')
 		  	.attr('d', path)
 		  	.attr('fill', function(d) { 
-		  		// console.log(d.id);
 		  		console.log(parseInt((data_by_country['$'.concat(d.id)] && 
 		  					data_by_country['$'.concat(d.id)]['$All_Causes']['2000']), 10)); // this seems like a hack.
-		  		// return 1; 
+		  		// this redundent '&&' pattern prevents missing values from throwing errors
+		  		// when data produces an 'undefined' result (eg. Palestine isn't in this dataset
+		  		// but it is on the map, so it throws an error if we try to select deaths in
+		  		// Palestine in year 2000, for example)
 		  		ctry_color = (data_by_country['$'.concat(d.id)] && 
 		  					data_by_country['$'.concat(d.id)]['$All_Causes']['2000']); 
 		  		console.log(ctry_color);
@@ -86,6 +93,11 @@ d3.json("countries_geo.json", function(geojson) {
 	});
 
 });
+
+function get_value_of_datum(d) {
+	return +(d && d['$'.concat(current_key)]);
+}
+
 // w/o rollup:  key: "ZWE", values: array(1), 0: <data>
 // w/ rollup:  key: "ZWE", values: <data>
 
