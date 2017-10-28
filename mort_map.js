@@ -25,7 +25,7 @@ var path = d3.geoPath()
 				.projection(projection);
 
 var color_fill = d3.scaleQuantize()
-	.domain([1,2000])
+	// .domain([1,2000])
 	.range(['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']);
 	// .unknown();
 
@@ -64,6 +64,13 @@ d3.json("countries_geo.json", function(geojson) {
 		console.log(data_by_country);
 		console.log(data_by_country['$ZWE']['$All_Causes']);
 
+		color_fill.domain([
+			d3.min(geojson.features, function(d) { 
+				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); }),
+			d3.max(geojson.features, function(d) { 
+				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
+		]);
+
 		svg.append('g')
 			 .attr('class', 'features.id')
 		  .selectAll('path')
@@ -77,8 +84,8 @@ d3.json("countries_geo.json", function(geojson) {
 		  		// when data produces an 'undefined' result (eg. Palestine isn't in this dataset
 		  		// but it is on the map, so it throws an error if we try to select deaths in
 		  		// Palestine in year 2000, for example)
-		  		ctry_color = (data_by_country['$'.concat(d.id)] && 
-		  					data_by_country['$'.concat(d.id)]['$All_Causes']['2000']); 
+		  		console.log(d.id);
+		  		ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
 		  		console.log(ctry_color);
 		  		if (typeof ctry_color != 'undefined') {
 		  			console.log(color_fill(ctry_color));
@@ -95,7 +102,8 @@ d3.json("countries_geo.json", function(geojson) {
 });
 
 function get_value_of_datum(d) {
-	return +(d && d['$'.concat(current_key)]);
+	// console.log(d);
+	return d && d['$'.concat(current_key)][current_year];
 }
 
 // w/o rollup:  key: "ZWE", values: array(1), 0: <data>
