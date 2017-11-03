@@ -15,22 +15,86 @@ var current_key = 'All_Causes';
 var current_year = '2000';
 
 var year_data = {
-	'2000': 0,
-	'2001': 0,
-	'2002': 0,
-	'2003': 0,
-	'2004': 0,
-	'2005': 0,
-	'2006': 0,
-	'2007': 0,
-	'2008': 0,
-	'2009': 0,
-	'2010': 0,
-	'2011': 0,
-	'2012': 0,
-	'2013': 0,
-	'2014': 0,
-	'2015': 0
+	2000: {
+		year: '2000',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2001: {
+		year: '2001',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2002: {
+		year: '2002',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2003: {
+		year: '2003',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2004: {
+		year: '2004',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2005: {
+		year: '2005',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2006: {
+		year: '2006',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2007: {
+		year: '2007',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2008: {
+		year: '2008',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2009: {
+		year: '2009',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2010: {
+		year: '2010',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2011: {
+		year: '2011',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2012: {
+		year: '2012',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2013: {
+		year: '2013',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2014: {
+		year: '2014',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	},
+	2015: {
+		year: '2015',
+		all_cause_datum: -1,
+		key_cause_datum: -1
+	}
 }
 
 var svg = d3.select('#choropleth').append('svg')
@@ -109,6 +173,13 @@ g.append('text')
 // This listens to a window-resizing event and resizes the legend on event 
 window.onresize = update_legend;
 
+// default: h: 145, w: 550 
+var graph2_svg = d3.select('#supplemental_graphs')
+					.append('svg')
+					.attr('width', '50%')
+					.attr('height', '25%')
+					.attr('preserveAspectRatio', 'xMinYMin')
+					.attr('transform', 'translate(' + Math.min(w,h)/2 + ' '+ Math.min(w,h)/2 + ')');
 
 function update_legend() {
 	var legend_w = d3.select('#choropleth').node()
@@ -226,6 +297,10 @@ function clicked(d) {
 			 	.style("stroke-width", 1.5 / scale + "px")
 			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
 	get_year_data_for_cause(d);
+	d3.select('#supplemental_graphs').classed("hidden", false);
+	console.log(d);
+	console.log(graph2_svg);
+	mort_line_plot(d, year_data, graph2_svg);
 }
 
 function reset() {
@@ -289,23 +364,66 @@ function get_value_of_datum(d, yr=current_year) {
 	return d && d['$'.concat(current_key)][yr];
 }
 
-function get_value_of_year_datum(f, yr) {
+function get_value_of_year_datum(f, yr, ck=current_key) {
 	// console.log(d);
-	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(current_key)][yr];
+	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(ck)][yr];
 }
 
+// This functiion updates the year_data object for the current cause
+// f: 	a geojson features object, used to get a location id
 function get_year_data_for_cause(f) {
 	this_ctry_id = f.id;
 	if (typeof mort_data['$'.concat(f.id)] !== 'undefined') {
 		for (yr in year_data) {
-			year_data[yr] = +get_value_of_year_datum(this_ctry_id, yr);
+			year_data[yr].key_cause_datum = +get_value_of_year_datum(this_ctry_id, yr);
+			year_data[yr].all_cause_datum = +get_value_of_year_datum(this_ctry_id, yr, 'All_Causes');
 		}
 	} else {
 		for (yr in year_data) {
-			year_data[yr] = -1;
+			year_data[yr].key_cause_datum = -1;
+			year_data[yr].all_cause_datum = -1;
 		}
 	}
 	console.log(year_data);
+}
+
+function mort_line_plot(f, data, graph_svg) {
+	line_scale_x = d3.scaleLinear()
+					 .domain([2000, 2015])
+					 .range([0, get_svg_width()/2]);
+	// console.log(graph_svg._groups[0][0].width.animVal.valueInSpecifiedUnits * w/100);
+	// console.log(d3.select(svg).node()._groups[0][0].width.animVal.value);
+	console.log(get_svg_width()/2);
+	line_scale_y = d3.scaleLinear()
+					   .domain([0, d3.max(year_data, function(d) {
+					   		return d.all_cause_datum; 
+					   	})])
+					   .range([0, get_svg_width()*0.25/2]);
+	console.log(get_svg_width()*0.25/2);
+	var all_cause_line = d3.line()
+				.x( function(d) { return line_scale_x(d.year); })
+				.y( function(d) { return line_scale_y(d.all_cause_datum);});
+	var key_cause_line = d3.line()
+				.x( function(d) { return line_scale_x(d.year); })
+				.y( function(d) { return line_scale_y(d.key_cause_datum);});
+	graph_svg.append('text').text('hi');
+	graph_svg.append('path')
+				.datum(year_data)
+				.attr('class', 'line')
+				.attr('d', all_cause_line);
+	graph_svg.append('key_cause_line')
+				.datum(year_data)
+				.attr('class', 'line')
+				.attr('d', key_cause_line);
+				console.log(year_data);
+
+}
+
+function get_svg_width() {
+	return d3.select(svg).node()._groups[0][0].width.animVal.value;
+}
+function get_svg_height() {
+	return d3.select(svg).node()._groups[0][0].height.animVal.value;
 }
 
 // This function takes a geojson object and determines appropriate

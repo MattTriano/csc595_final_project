@@ -12,6 +12,11 @@ g.features {
 g.features path:hover {
   opacity: 0.5;
 }
+.line {
+	fill: none;
+	stroke: black;
+	stroke-width: 1;
+}
 #legend {
   border: 1px solid silver;
   border-top: 0;
