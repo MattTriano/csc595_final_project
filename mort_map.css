@@ -12,6 +12,23 @@ g.features {
 g.features path:hover {
   opacity: 0.5;
 }
+#legend {
+  border: 1px solid silver;
+  border-top: 0;
+}
+
+.legend-key path {
+  display: none;
+}
+
+.legend-key text {
+  font-size: 1rem;
+}
+
+.legend-key line {
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
 .tooltip {
   font-weight: bold;
   font-size: 1.5rem;
@@ -47,10 +64,11 @@ td {
   font-size: 0; /* to prevent margin at bottom of map container */
   border: 1px solid silver;
   background: #E6E6E6;
+  background-color: #a7cdf2;
 }
-svg {
+/*svg {
 	background-color: #a7cdf2;	
-}
+}*/
 
 .feature.active {
 	border: 3px black;

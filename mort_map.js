@@ -1,5 +1,6 @@
 // Useful reading
 // On accessing nested data: https://bost.ocks.org/mike/nest/
+// On making a legend: https://bl.ocks.org/mbostock/4573883
 
 // Setting height and width (should match the CSS)
 var w = 1100;
@@ -12,6 +13,25 @@ var ctry_color;
 // way to handle time series data) year.
 var current_key = 'All_Causes';
 var current_year = '2000';
+
+var year_data = {
+	'2000': 0,
+	'2001': 0,
+	'2002': 0,
+	'2003': 0,
+	'2004': 0,
+	'2005': 0,
+	'2006': 0,
+	'2007': 0,
+	'2008': 0,
+	'2009': 0,
+	'2010': 0,
+	'2011': 0,
+	'2012': 0,
+	'2013': 0,
+	'2014': 0,
+	'2015': 0
+}
 
 var svg = d3.select('#choropleth').append('svg')
 			.attr('preserveAspectRatio', 'xMidYMid')
@@ -36,13 +56,12 @@ var map_features = svg.append('g')
 var color_fill = d3.scaleQuantize()
 	// .domain([1,2000])
 	.range(['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']);
-	// .unknown();
 
 // Initializing an object to store data broken down by country
 var data_by_country = d3.map();
 
-// Initializing a variable to hold CSV and geojson data
-var map_data;
+// Initializing a variable to hold CSV (mort_data) and geojson data
+var mort_data;
 var geojson_data;
 
 d3.select('#select_key').on('change', function(a) {
@@ -57,6 +76,77 @@ var color_class = d3.scaleQuantize()
 						return 'q' + i + '-7'; 
 					}));
 
+// Code to prepare the legend
+var format_value = d3.format('.0f');
+var legend_scale = d3.scaleLinear();
+var legend_x_axis = d3.axisBottom(legend_scale)
+		.tickSize(13)
+		.tickFormat( function(d) { return format_value(d); });
+
+var legend_svg = d3.select('#legend')
+					.append('svg')
+					  .attr('width', '100%')
+					  .attr('height', '50');
+
+var g = legend_svg.append('g')
+					.attr('transform', 'translate(' + 20 + ',' + 20 + ')');
+
+g.selectAll('rect')
+	.data(color_fill.range()
+					.map(function(d) { 
+						return color_fill.invertExtent(d); 
+					}))
+	.enter()
+	.append('rect');
+
+g.append('text')
+	.attr('class', 'legend_text')
+	.attr('fill', '#000')
+	.attr('font-weight', 'bold')
+	.attr('text-anchor', 'start')
+	.attr('y', -6)
+
+// This listens to a window-resizing event and resizes the legend on event 
+window.onresize = update_legend;
+
+
+function update_legend() {
+	var legend_w = d3.select('#choropleth').node()
+					   .getBoundingClientRect().width - 50;
+	// This sets evenly sized domain-spans to map the data to a color 
+	var legend_domain = color_fill.range().map( function(d) {
+		var color_range = color_fill.invertExtent(d);
+		return color_range[1];
+	});
+	// This sets the lower end of the domain to the lowest observed value
+	legend_domain.unshift(color_fill.domain()[0]);
+
+	// This sets the domain and range for the legend bin widths
+	legend_scale.domain(color_fill.domain())
+				.range([0, legend_w]);
+
+	// This sets positions and widths for the rectangles in the legend
+	g.selectAll('rect')
+		.data(color_fill.range().map( function(d) {
+			return color_fill.invertExtent(d);
+		}))
+		.attr("height", 8)
+		.attr('x', function(d) { return legend_scale(d[0]); })
+		.attr('width', function(d) { 
+			return legend_scale(d[1]) - legend_scale(d[0]); 
+		})
+		.attr('fill', function(d, i) {
+			return color_fill.range()[i];
+		});
+
+	var dropdown_keys = d3.select('#select_key').node();
+	var selected_key = dropdown_keys.options[dropdown_keys.selectedIndex];
+	g.selectAll('text.legend_text').text(selected_key.text);
+	legend_x_axis.tickValues(legend_domain);
+	g.call(legend_x_axis);
+}
+
+
 d3.json("countries_geo.json", function(geojson) {
 	console.log(geojson);
 
@@ -70,8 +160,6 @@ d3.json("countries_geo.json", function(geojson) {
 
 	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
 
-		map_data = data;
-
 		data_by_country = d3.nest()
 				.key( function(d) { return d.iso3; } )
 				.key( function(d) { return d.causename; } )
@@ -79,7 +167,7 @@ d3.json("countries_geo.json", function(geojson) {
 				.map(data);
 		console.log(data_by_country);
 
-		
+		mort_data = data_by_country;
 
 		map_features.selectAll('path')
 		  			  .data(geojson.features)
@@ -116,7 +204,8 @@ function update_map_colors() {
 					} else {
 						return '#808080';  // Returns grey if the color is undefined (ie no data)
 					};
-				})
+				});
+	update_legend();
 }
 
 function clicked(d) {
@@ -136,6 +225,7 @@ function clicked(d) {
 			 	.duration(750)
 			 	.style("stroke-width", 1.5 / scale + "px")
 			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+	get_year_data_for_cause(d);
 }
 
 function reset() {
@@ -182,7 +272,7 @@ function get_country_name(f) {
 	// console.log(f.properties.name)
 	// this_ctry_name = f && f['$'.concat(current_key)].country_name;
 	this_ctry_name = f.properties.name;
-	if (typeof this_ctry_name != 'undefined') {
+	if (typeof this_ctry_name !== 'undefined') {
 		return this_ctry_name;
 	} else {
 		return 'Data Not Available';
@@ -194,9 +284,28 @@ function get_country_name(f) {
 // when data produces an 'undefined' result (eg. Palestine isn't in this dataset
 // but it is on the map, so it throws an error if we try to select deaths in
 // Palestine in year 2000, for example)
-function get_value_of_datum(d) {
+function get_value_of_datum(d, yr=current_year) {
+	console.log(d);
+	return d && d['$'.concat(current_key)][yr];
+}
+
+function get_value_of_year_datum(f, yr) {
 	// console.log(d);
-	return d && d['$'.concat(current_key)][current_year];
+	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(current_key)][yr];
+}
+
+function get_year_data_for_cause(f) {
+	this_ctry_id = f.id;
+	if (typeof mort_data['$'.concat(f.id)] !== 'undefined') {
+		for (yr in year_data) {
+			year_data[yr] = +get_value_of_year_datum(this_ctry_id, yr);
+		}
+	} else {
+		for (yr in year_data) {
+			year_data[yr] = -1;
+		}
+	}
+	console.log(year_data);
 }
 
 // This function takes a geojson object and determines appropriate
