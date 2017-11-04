@@ -133,12 +133,6 @@ d3.select('#select_key').on('change', function(a) {
   update_map_colors();
 });
 
-var color_class = d3.scaleQuantize()
-					.domain([1,1700])
-					.range(d3.range(7).map(function(i) {
-						return 'q' + i + '-7'; 
-					}));
-
 // Code to prepare the legend
 var format_value = d3.format('.0f');
 var legend_scale = d3.scaleLinear();
