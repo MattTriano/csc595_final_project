@@ -75,12 +75,14 @@ var data = [
 
 var parseDate = d3.timeParse('%e-%b-%y');
 
+console.log(data);
 // Get the data
 data.forEach(function(d) {
 	d.date = parseDate(d.date);
 	d.close = +d.close;
 	d.open = +d.open;
 });
+console.log(data);
 
 // Scale the range of the data
 x.domain(d3.extent(data, function(d) { return d.date; }));
