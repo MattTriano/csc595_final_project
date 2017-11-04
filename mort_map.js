@@ -6,9 +6,6 @@
 var w = 1100;
 var h = 580;
 var active = d3.select(null);
-console.log(active);
-console.log(active._groups[0][0]);
-console.log(active._groups[0][0] !== null);
 
 var ctry_color;
 
@@ -213,11 +210,10 @@ function update_legend() {
 
 
 d3.json("countries_geo.json", function(geojson) {
-	console.log(geojson);
+	// console.log(geojson);
 
 	var map_scale =  map_scaler(geojson);
 	geojson_data = geojson;
-	console.log(map_scale);
 
 	projection.scale(map_scale.scale)
 				.center(map_scale.center)
@@ -230,7 +226,7 @@ d3.json("countries_geo.json", function(geojson) {
 				.key( function(d) { return d.causename; } )
 				.rollup( function(d) { return d[0]; })
 				.map(data);
-		console.log(data_by_country);
+		console.log(data_by_country); // this is the core data structure I use
 
 		mort_data = data_by_country;
 
@@ -303,7 +299,6 @@ function show_tooltip(f) {
   var mouse = d3.mouse(d3.select('#choropleth').node()).map(
   	function(d) { return parseInt(d); 
   });
-  // console.log(f);
   var ctry_name = get_country_name(f)
   var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
   var top = mouse[1] + 25;
@@ -335,8 +330,6 @@ function get_value_of_datum(d, yr=current_year) {
 }
 
 function get_value_of_year_datum(f, yr, ck=current_key) {
-	console.log(yr);
-	console.log(mort_data['$'.concat(f)]['$'.concat(ck)][yr]);
 	yr = parseInt(yr);
 	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(ck)][yr];
 }
@@ -349,7 +342,6 @@ function get_year_data_for_cause(f) {
 		for (yd in year_data) {
 			year_data[yd].key_cause_datum = +get_value_of_year_datum(this_ctry_id, year_data[yd].year);
 			year_data[yd].all_cause_datum = +get_value_of_year_datum(this_ctry_id, year_data[yd].year, 'All_Causes');
-			// console.log(year_data[yd].key_cause_datum);
 		}
 	} else {
 		for (yr in year_data) {
