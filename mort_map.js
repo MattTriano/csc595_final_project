@@ -178,8 +178,8 @@ var graph2_svg = d3.select('#supplemental_graphs')
 					.append('svg')
 					.attr('width', '50%')
 					.attr('height', '25%')
-					.attr('preserveAspectRatio', 'xMinYMin')
-					.attr('transform', 'translate(' + Math.min(w,h)/2 + ' '+ Math.min(w,h)/2 + ')');
+					.attr('preserveAspectRatio', 'xMinYMin');
+					// .attr('transform', 'translate(' + Math.min(w,h)/2 + ' '+ Math.min(w,h)/2 + ')');
 
 function update_legend() {
 	var legend_w = d3.select('#choropleth').node()
@@ -297,10 +297,10 @@ function clicked(d) {
 			 	.style("stroke-width", 1.5 / scale + "px")
 			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
 	get_year_data_for_cause(d);
-	d3.select('#supplemental_graphs').classed("hidden", false);
 	console.log(d);
 	console.log(graph2_svg);
 	mort_line_plot(d, year_data, graph2_svg);
+	d3.select('#supplemental_graphs').classed("hidden", false);
 }
 
 function reset() {
@@ -319,7 +319,7 @@ function show_tooltip(f) {
   var mouse = d3.mouse(d3.select('#choropleth').node()).map(
   	function(d) { return parseInt(d); 
   });
-  console.log(f);
+  // console.log(f);
   var ctry_name = get_country_name(f)
   var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
   var top = mouse[1] + 25;
@@ -360,7 +360,7 @@ function get_country_name(f) {
 // but it is on the map, so it throws an error if we try to select deaths in
 // Palestine in year 2000, for example)
 function get_value_of_datum(d, yr=current_year) {
-	console.log(d);
+	// console.log(d);
 	return d && d['$'.concat(current_key)][yr];
 }
 
@@ -384,7 +384,6 @@ function get_year_data_for_cause(f) {
 			year_data[yr].all_cause_datum = -1;
 		}
 	}
-	console.log(year_data);
 }
 
 function mort_line_plot(f, data, graph_svg) {
@@ -406,25 +405,25 @@ function mort_line_plot(f, data, graph_svg) {
 	var key_cause_line = d3.line()
 				.x( function(d) { return line_scale_x(d.year); })
 				.y( function(d) { return line_scale_y(d.key_cause_datum);});
+	console.log(all_cause_line);
 	graph_svg.append('text').text('hi');
 	graph_svg.append('path')
-				.datum(year_data)
+				.datum(data)
 				.attr('class', 'line')
 				.attr('d', all_cause_line);
 	graph_svg.append('key_cause_line')
-				.datum(year_data)
+				.datum(data)
 				.attr('class', 'line')
 				.attr('d', key_cause_line);
 				console.log(year_data);
+	graph_svg.append('circle').attr('cx',30).attr('cy',30).attr('r',20);
 
 }
 
 function get_svg_width() {
 	return d3.select(svg).node()._groups[0][0].width.animVal.value;
 }
-function get_svg_height() {
-	return d3.select(svg).node()._groups[0][0].height.animVal.value;
-}
+
 
 // This function takes a geojson object and determines appropriate
 // scale and center coordinates based on the extents of the geojson
