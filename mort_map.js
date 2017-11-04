@@ -17,88 +17,6 @@ var ctry_color;
 var current_key = 'All_Causes';
 var current_year = '2000';
 
-// var year_data = {
-// 	2000: {
-// 		year: '2000',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2001: {
-// 		year: '2001',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2002: {
-// 		year: '2002',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2003: {
-// 		year: '2003',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2004: {
-// 		year: '2004',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2005: {
-// 		year: '2005',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2006: {
-// 		year: '2006',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2007: {
-// 		year: '2007',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2008: {
-// 		year: '2008',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2009: {
-// 		year: '2009',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2010: {
-// 		year: '2010',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2011: {
-// 		year: '2011',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2012: {
-// 		year: '2012',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2013: {
-// 		year: '2013',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2014: {
-// 		year: '2014',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	},
-// 	2015: {
-// 		year: '2015',
-// 		all_cause_datum: -1,
-// 		key_cause_datum: -1
-// 	}
-// }
 var year_data = [
 	{
 		year: '2000',
@@ -203,7 +121,6 @@ var map_features = svg.append('g')
 	.attr('class', 'features.id');
 
 var color_fill = d3.scaleQuantize()
-	// .domain([1,2000])
 	.range(['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']);
 
 // Initializing an object to store data broken down by country
@@ -257,10 +174,6 @@ g.append('text')
 
 // This listens to a window-resizing event and resizes the legend on event 
 window.onresize = update_legend;
-// window.onresize = if(active._groups[0][0] !== null) {
-
-// }
-
 
 function update_legend() {
 	var legend_w = d3.select('#choropleth').node()
@@ -325,14 +238,6 @@ d3.json("countries_geo.json", function(geojson) {
 		  			  .data(geojson.features)
 		  			.enter().append('path')
 		  			  .attr('d', path)
-		  			  // .attr('fill', function(d) { 
-		  			  // 	ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
-		  			  // 	if (typeof ctry_color != 'undefined') {
-		  			  // 		return color_fill(ctry_color);
-		  			  // 	} else {
-		  			  // 		return '#808080';  // Returns grey if the color is undefined (ie no data)
-		  			  // 	};
-		  			  // })
 		  			  .on("click", clicked)
 		  			  .on('mousemove', show_tooltip)
 		  			  .on('mouseout', hide_tooltip);
@@ -377,10 +282,7 @@ function clicked(d) {
 			 	.duration(750)
 			 	.style("stroke-width", 1.5 / scale + "px")
 			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
-	console.log('clicked');
-	console.log(d);
 	get_year_data_for_cause(d);
-	console.log(graph1_svg);
 	mort_line_plot(d, year_data, graph1_svg);
 	d3.select('#supplemental_graphs').classed("hidden", false);
 }
@@ -415,26 +317,13 @@ function hide_tooltip() {
   tooltip.classed('hidden', true);
 }
 
-// function doZoom() {
-//   mapFeatures.attr("transform",
-//     "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
-//     // Keep the stroke width proportional. The initial stroke width
-//     // (0.5) must match the one set in the CSS.
-//     .style("stroke-width", 0.5 / d3.event.scale + "px");
-// }
-
-
 function get_country_name(f) {
-	// console.log(f);
-	// console.log(f.properties.name)
-	// this_ctry_name = f && f['$'.concat(current_key)].country_name;
 	this_ctry_name = f.properties.name;
 	if (typeof this_ctry_name !== 'undefined') {
 		return this_ctry_name;
 	} else {
 		return 'Data Not Available';
 	}
-	// return d && d['$'.concat(current_key)].country_name;
 }
 
 // this redundent '&&' pattern prevents missing values from throwing errors
@@ -442,7 +331,6 @@ function get_country_name(f) {
 // but it is on the map, so it throws an error if we try to select deaths in
 // Palestine in year 2000, for example)
 function get_value_of_datum(d, yr=current_year) {
-	// console.log(d);
 	return d && d['$'.concat(current_key)][yr];
 }
 
@@ -457,11 +345,8 @@ function get_value_of_year_datum(f, yr, ck=current_key) {
 // f: 	a geojson features object, used to get a location id
 function get_year_data_for_cause(f) {
 	this_ctry_id = f.id;
-	console.log('year_data');
-	console.log(mort_data);
 	if (typeof mort_data['$'.concat(f.id)] !== 'undefined') {
 		for (yd in year_data) {
-			console.log(year_data[yd]);
 			year_data[yd].key_cause_datum = +get_value_of_year_datum(this_ctry_id, year_data[yd].year);
 			year_data[yd].all_cause_datum = +get_value_of_year_datum(this_ctry_id, year_data[yd].year, 'All_Causes');
 			// console.log(year_data[yd].key_cause_datum);
@@ -472,22 +357,15 @@ function get_year_data_for_cause(f) {
 			year_data[yr].all_cause_datum = -1;
 		}
 	}
-	console.log(year_data);
 }
 
 var graph_pad = 35;
-// default: h: 145, w: 550 
 var graph1_svg = d3.select('#supplemental_graphs')
 					.append('svg')
 					.attr('width', '50%')
 					.attr('height', '50%')
 					.attr('preserveAspectRatio', 'xMinYMin');
 					// .attr('transform', 'translate(' + Math.min(w,h)/2 + ' '+ Math.min(w,h)/2 + ')');
-// var graph1_svg = d3.select('#supplemental_graphs')
-// 					.append('svg')
-// 					.attr('preserveAspectRatio', 'xMinYmin')
-// 					.attr('viewBox', '0 '+ get_svg_height() + ' ' + 0.5*get_svg_width() + ' ' + 0.5*get_svg_height());
-
 
 var	parse_year = d3.timeParse("%Y");
 var time_scale = d3.scaleTime();
@@ -498,27 +376,13 @@ function mort_line_plot(f, data, graph_svg) {
 	graph_svg.selectAll('*').remove();
 
 	var frame_h = get_svg_height();
-	console.log(frame_h);
 	var frame_w = get_svg_width();
 	var this_w = 0.5 * get_svg_width();
 	var this_h = 0.25 * get_svg_height();
-	console.log(this_w);
-	console.log(this_h);
 	time_scale.domain([new Date(2000), new Date(2015)])
 			  .range([graph_pad, this_w-graph_pad]);
-
-
-	// death_scale.domain([
-	// 					0, 
-	// 					d3.max(local_data, function(d) {
-	// 						return d3.max(d.all_cause_datum, function(e) {
-	// 							return d3.max(e);
-	// 						});
-	// 					})
-	// 				   ])
-	// 		   .range([0.25*this_w, 0]);
 			   
-	death_scale.domain([0, 2500])
+	death_scale.domain([0, 2250])
 			   .range([this_h-graph_pad, graph_pad]);
 
 	var	time_axis = d3.axisBottom()
@@ -528,41 +392,22 @@ function mort_line_plot(f, data, graph_svg) {
 					   .scale(death_scale)
 					   .ticks(6);
 
-	// console.log(d3.max(local_data, function(d) { return parseInt(d.all_cause_datum);}));
-	// local_data.forEach(function(d) {
-	// 	d.year = parse_year(d.year);
-	// 	d.all_cause_datum = +d.all_cause_datum;
-	// 	d.key_cause_datum = +d.key_cause_datum;
-	// });
-	// console.log(year_data);
-	console.log('mort plot');
-	console.log(local_data);
-
-
-	// line_scale_x = d3.scaleLinear()
-	// 				 .domain([2000, 2015])
-	// 				 .range([0, get_svg_width()/2]);
-	// console.log(graph_svg._groups[0][0].width.animVal.valueInSpecifiedUnits * w/100);
-	// console.log(d3.select(svg).node()._groups[0][0].width.animVal.value);
-	// console.log(get_svg_width()/2);
-	// line_scale_y = d3.scaleLinear()
-	// 				   .domain([0, d3.max(year_data, function(d) {
-	// 				   		return d.all_cause_datum; 
-	// 				   	})])
-	// 				   .range([0, get_svg_width()*0.25/2]);
-	console.log(get_svg_width()*0.25/2);
 	var all_cause_line = d3.line()
 				.x( function(d) { return time_scale(d.year); })
 				.y( function(d) { return death_scale(parseInt(d.all_cause_datum));});
-	// var key_cause_line = d3.line()
-	// 			.x( function(d) { return line_scale_x(d.year); })
-	// 			.y( function(d) { return line_scale_y(d.key_cause_datum);});
-	console.log(death_scale(local_data.all_cause_datum));
+	var key_cause_line = d3.line()
+				.x( function(d) { return time_scale(d.year); })
+				.y( function(d) { return death_scale(parseInt(d.key_cause_datum));});
+	
 	graph_svg.append('text').text('hi');
 	graph_svg.append('path')
 				.datum(local_data)
 				.attr('class', 'line')
 				.attr('d', all_cause_line);
+	graph_svg.append('path')
+				.datum(local_data)
+				.attr('class', 'line')
+				.attr('d', key_cause_line);
 
 	graph_svg.append("g")
 		.attr("class", "axis")
@@ -577,13 +422,9 @@ function mort_line_plot(f, data, graph_svg) {
 			 .attr('class', 'axis')
 			 .attr('transform', 'translate ('+graph_pad+',0)')
 			 .call(death_axis);
-	// graph_svg.append('key_cause_line')
-	// 			.datum(data)
-	// 			.attr('class', 'line')
-	// 			.attr('d', key_cause_line);
-	// 			console.log(year_data);
+
 	// this is just a test object to confirm an image appears
-	graph_svg.append('circle').attr('cx',30).attr('cy',30).attr('r',20);
+	// graph_svg.append('circle').attr('cx',30).attr('cy',30).attr('r',20);
 
 }
 
