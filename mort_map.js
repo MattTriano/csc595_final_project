@@ -203,7 +203,7 @@ function update_legend() {
 
 	var dropdown_keys = d3.select('#select_key').node();
 	var selected_key = dropdown_keys.options[dropdown_keys.selectedIndex];
-	g.selectAll('text.legend_text').text(selected_key.text + ' (in deaths per 100,000 population) [in ' + current_year +']');
+	g.selectAll('text.legend_text').text(selected_key.text + ' [deaths per 100k pop. in ' + current_year +']');
 	legend_x_axis.tickValues(legend_domain);
 	g.call(legend_x_axis);
 }
@@ -228,7 +228,7 @@ d3.json("countries_geo.json", function(geojson) {
 				.map(data);
 		console.log(data_by_country); // this is the core data structure I use
 
-		// I'm working on making this object to 
+		// I'm working on making this object to facilitate sortin
 		cause_by_country = d3.nest()
 				.key( function(d) { return d.iso3; })
 				.key( function(d) { return d.causename})
