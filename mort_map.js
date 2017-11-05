@@ -133,6 +133,12 @@ d3.select('#select_key').on('change', function(a) {
   update_map_colors();
 });
 
+d3.select('#select_year').on('change', function(a) {
+  // Change the current key and call the function to update the colors.
+  current_year = d3.select(this).property('value');
+  update_map_colors();
+});
+
 // Code to prepare the legend
 var format_value = d3.format('.0f');
 var legend_scale = d3.scaleLinear();
@@ -197,7 +203,7 @@ function update_legend() {
 
 	var dropdown_keys = d3.select('#select_key').node();
 	var selected_key = dropdown_keys.options[dropdown_keys.selectedIndex];
-	g.selectAll('text.legend_text').text(selected_key.text);
+	g.selectAll('text.legend_text').text(selected_key.text + ' (in deaths per 100,000 population) [in ' + current_year +']');
 	legend_x_axis.tickValues(legend_domain);
 	g.call(legend_x_axis);
 }
@@ -275,6 +281,8 @@ function clicked(d) {
 	get_year_data_for_cause(d);
 	mort_line_plot(d, year_data, graph1_svg);
 	d3.select('#supplemental_graphs').classed("hidden", false);
+	d3.select('#sup_graph1').classed("hidden", false);
+	d3.select('#sup_graph2').classed("hidden", false);
 }
 
 function reset() {
@@ -345,11 +353,15 @@ function get_year_data_for_cause(f) {
 	}
 }
 
-var graph_pad = 35;
-var graph1_svg = d3.select('#supplemental_graphs')
+var graph_pad = 45;
+var left_pad = 35;
+var top_pad = 20;
+var bot_pad = 30;
+var right_pad = 23;
+var graph1_svg = d3.select('#sup_graph1')
 					.append('svg')
-					.attr('width', '50%')
-					.attr('height', '50%')
+					.attr('width', '100%')
+					.attr('height', '150%')
 					.attr('preserveAspectRatio', 'xMinYMin');
 					// .attr('transform', 'translate(' + Math.min(w,h)/2 + ' '+ Math.min(w,h)/2 + ')');
 
@@ -365,27 +377,29 @@ function mort_line_plot(f, data, graph_svg) {
 	var frame_w = get_svg_width();
 	var this_w = 0.5 * get_svg_width();
 	var this_h = 0.25 * get_svg_height();
-	time_scale.domain([new Date(2000), new Date(2015)])
-			  .range([graph_pad, this_w-graph_pad]);
+	time_scale.domain([new Date(2000,0), new Date(2015,0)])
+			  .range([left_pad, this_w-right_pad]);
 			   
 	death_scale.domain([0, 2250])
-			   .range([this_h-graph_pad, graph_pad]);
+			   .range([this_h-bot_pad, right_pad]);
 
 	var	time_axis = d3.axisBottom()
 					  .scale(time_scale)
-					  .ticks(16);
+					  .ticks(16)
+					  .tickFormat(d3.timeFormat('%Y'));
 	var death_axis = d3.axisLeft()
 					   .scale(death_scale)
 					   .ticks(6);
 
 	var all_cause_line = d3.line()
-				.x( function(d) { return time_scale(d.year); })
+				.x( function(d) { return time_scale(parse_year(String(d.year))); })
 				.y( function(d) { return death_scale(parseInt(d.all_cause_datum));});
 	var key_cause_line = d3.line()
-				.x( function(d) { return time_scale(d.year); })
+				.x( function(d) { return time_scale(parse_year(String(d.year))); })
 				.y( function(d) { return death_scale(parseInt(d.key_cause_datum));});
 	
 	graph_svg.append('text').text('hi');
+	console.log(function(d) { return extent(d.year);});
 	graph_svg.append('path')
 				.datum(local_data)
 				.attr('class', 'line')
@@ -397,16 +411,16 @@ function mort_line_plot(f, data, graph_svg) {
 
 	graph_svg.append("g")
 		.attr("class", "axis")
-		.attr("transform", "translate(0," + (this_h - graph_pad) + ")")
+		.attr("transform", "translate(0," + (this_h - bot_pad) + ")")
 		.call(time_axis)
 		.selectAll("text")
 		.style("text-anchor", "end")
 		.attr("dx", "-.8em")
-		.attr("dy", ".15em")
-		.attr("transform", "rotate(-65)");
+		.attr("dy", ".1em")
+		.attr("transform", "rotate(-60)");
 	graph_svg.append('g')
 			 .attr('class', 'axis')
-			 .attr('transform', 'translate ('+graph_pad+',0)')
+			 .attr('transform', 'translate ('+left_pad+',0)')
 			 .call(death_axis);
 
 	// this is just a test object to confirm an image appears

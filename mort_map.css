@@ -78,6 +78,10 @@ td {
 .feature.active {
 	border: 3px black;
 }
+/*.axis path, .axis line {
+	fill: none;
+	stroke: none;
+}*/
 
 .Oranges .q0-7{fill:rgb(254,237,222)}
 .Oranges .q1-7{fill:rgb(253,208,162)} 
