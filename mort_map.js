@@ -222,11 +222,19 @@ d3.json("countries_geo.json", function(geojson) {
 	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
 
 		data_by_country = d3.nest()
-				.key( function(d) { return d.iso3; } )
-				.key( function(d) { return d.causename; } )
+				.key( function(d) { return d.iso3; })
+				.key( function(d) { return d.causename; })
 				.rollup( function(d) { return d[0]; })
 				.map(data);
 		console.log(data_by_country); // this is the core data structure I use
+
+		// I'm working on making this object to 
+		cause_by_country = d3.nest()
+				.key( function(d) { return d.iso3; })
+				.key( function(d) { return d.causename})
+				.rollup( function(d) { return parseFloat(d['2000']) + parseFloat(d['2001'])})
+				.map(data);
+		console.log(cause_by_country);
 
 		mort_data = data_by_country;
 
@@ -280,6 +288,7 @@ function clicked(d) {
 			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
 	get_year_data_for_cause(d);
 	mort_line_plot(d, year_data, graph1_svg);
+	d3.select('#graph_titles').classed("hidden", false);
 	d3.select('#supplemental_graphs').classed("hidden", false);
 	d3.select('#sup_graph1').classed("hidden", false);
 	d3.select('#sup_graph2').classed("hidden", false);
@@ -353,7 +362,6 @@ function get_year_data_for_cause(f) {
 	}
 }
 
-var graph_pad = 45;
 var left_pad = 35;
 var top_pad = 20;
 var bot_pad = 30;
@@ -363,9 +371,9 @@ var graph1_svg = d3.select('#sup_graph1')
 					.attr('width', '100%')
 					.attr('height', '150%')
 					.attr('preserveAspectRatio', 'xMinYMin');
-					// .attr('transform', 'translate(' + Math.min(w,h)/2 + ' '+ Math.min(w,h)/2 + ')');
 
 var	parse_year = d3.timeParse("%Y");
+var format_year = d3.timeFormat('%Y')
 var time_scale = d3.scaleTime();
 var	death_scale = d3.scaleLinear();
 
@@ -386,7 +394,7 @@ function mort_line_plot(f, data, graph_svg) {
 	var	time_axis = d3.axisBottom()
 					  .scale(time_scale)
 					  .ticks(16)
-					  .tickFormat(d3.timeFormat('%Y'));
+					  .tickFormat(format_year);
 	var death_axis = d3.axisLeft()
 					   .scale(death_scale)
 					   .ticks(6);
