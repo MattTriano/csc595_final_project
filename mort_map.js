@@ -291,6 +291,7 @@ function clicked(d) {
 	d3.select('#graph_titles').classed("hidden", false);
 	d3.select('#supplemental_graphs').classed("hidden", false);
 	d3.select('#sup_graph1').classed("hidden", false);
+	d3.select('#sg1_legend').classed("hidden", false);
 	d3.select('#sup_graph2').classed("hidden", false);
 }
 
@@ -369,8 +370,8 @@ var right_pad = 23;
 var graph1_svg = d3.select('#sup_graph1')
 					.append('svg')
 					.attr('width', '100%')
-					.attr('height', '150%')
-					.attr('preserveAspectRatio', 'xMinYMin');
+					.attr('height', '200');
+					// .attr('preserveAspectRatio', 'xMinYMin');
 
 var	parse_year = d3.timeParse("%Y");
 var format_year = d3.timeFormat('%Y')
@@ -384,7 +385,8 @@ function mort_line_plot(f, data, graph_svg) {
 	var frame_h = get_svg_height();
 	var frame_w = get_svg_width();
 	var this_w = 0.5 * get_svg_width();
-	var this_h = 0.25 * get_svg_height();
+	// var this_h = 0.25 * get_svg_height();
+	var this_h = 200;
 	time_scale.domain([new Date(2000,0), new Date(2015,0)])
 			  .range([left_pad, this_w-right_pad]);
 			   
@@ -411,11 +413,13 @@ function mort_line_plot(f, data, graph_svg) {
 	graph_svg.append('path')
 				.datum(local_data)
 				.attr('class', 'line')
-				.attr('d', all_cause_line);
+				.attr('d', all_cause_line)
+				.style('stroke', '#fc8d62');
 	graph_svg.append('path')
 				.datum(local_data)
 				.attr('class', 'line')
-				.attr('d', key_cause_line);
+				.attr('d', key_cause_line)
+				.style('stroke', '#66c2a5');
 
 	graph_svg.append("g")
 		.attr("class", "axis")
@@ -430,6 +434,57 @@ function mort_line_plot(f, data, graph_svg) {
 			 .attr('class', 'axis')
 			 .attr('transform', 'translate ('+left_pad+',0)')
 			 .call(death_axis);
+	console.log(f.properties);
+	graph_svg.append('text')
+			 .attr('x', this_w/2)
+			 .attr('y', top_pad*4/5)
+			 .attr('text-anchor', 'middle')
+			 .text('Deaths from All Causes and from '+current_key+ ' for '+f.properties.name);
+	var legend_labels = [{ label: 'All Causes',     color: '#fc8d62'},
+						{  label: 'Selected Cause', color: '#66c2a5'}];
+	var svg_legend = graph_svg.append('svg')
+						.attr('width', this_w*.15)
+						.attr('height', 40);
+	console.log(this_w*8);
+	var this_legend = svg_legend.selectAll('#sg1_legend')
+								.data(legend_labels)
+								.enter().append('g')
+								.attr('id','sg1_legend')
+								.attr('transform', function(d, i) {
+									{
+										return 'translate(0,' + i*15 + ')'
+									}
+								});
+	var fant = 10;
+	graph_svg.append('rect')
+			 .datum(legend_labels)
+			   .attr('x',this_w*0.75)
+			   .attr('y',30)
+			   .attr('width',10)
+			   .attr('height',2)
+			   .style('fill', function(d) { return d[0].color; });
+	graph_svg.append('text')
+			 .datum(legend_labels)
+			   .attr('x',this_w*0.78)
+			   .attr('y',35)
+			   .text(function(d) { return d[0].label; })
+			   .style('font-size',fant);
+	graph_svg.append('rect')
+			 .datum(legend_labels)
+			   .attr('x',this_w*0.75)
+			   .attr('y',45)
+			   .attr('width',10)
+			   .attr('height',2)
+			   .style('fill', function(d) { return d[1].color; });
+	graph_svg.append('text')
+			 .datum(legend_labels)
+			   .attr('x',this_w*0.78)
+			   .attr('y',50)
+			   .text(function(d) { return d[1].label; })
+			   .style('font-size',fant);
+
+	
+
 
 	// this is just a test object to confirm an image appears
 	// graph_svg.append('circle').attr('cx',30).attr('cy',30).attr('r',20);

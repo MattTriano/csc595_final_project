@@ -3,7 +3,7 @@ body {
 }
 path {
 	stroke: #000;
-	stroke-width: 0.1px;
+	stroke-width: 0.3px;
 }
 g.features {
   stroke: #d8d8d8;
@@ -33,6 +33,9 @@ g.features path:hover {
 .legend-key line {
   stroke: #000;
   shape-rendering: crispEdges;
+}
+.chart-legend {
+	shape-rendering: 
 }
 .tooltip {
   font-weight: bold;
