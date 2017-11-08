@@ -14,12 +14,15 @@ var ctry_color;
 var current_key = 'All_Causes';
 var current_year = '2000';
 
-var years = [
-	'2000','2001','2002','2003',
-	'2004','2005','2006','2007',
-	'2008','2009','2010','2011',
-	'2012','2013','2014','2015'
-];
+var template = d3.select('#template').html();
+Mustache.parse(template);
+
+// var years = [
+// 	'2000','2001','2002','2003',
+// 	'2004','2005','2006','2007',
+// 	'2008','2009','2010','2011',
+// 	'2012','2013','2014','2015'
+// ];
 
 var year_data = [
 	{
@@ -133,6 +136,7 @@ var data_by_country = d3.map();
 // Initializing a variable to hold CSV (mort_data) and geojson data
 var mort_data;
 var geojson_data;
+// var sorted_data;
 
 d3.select('#select_key').on('change', function(a) {
   // Change the current key and call the function to update the colors.
@@ -235,13 +239,30 @@ d3.json("countries_geo.json", function(geojson) {
 				.map(data);
 		console.log(data_by_country); // this is the core data structure I use
 
-		// I'm working on making this object to facilitate sortin
-		cause_by_country = d3.nest()
-				.key( function(d) { return d.iso3; })
-				.key( function(d) { return d.causename})
-				.rollup( function(d) { return d[0].avg_death_rate; })
-				.map(data);
-		console.log(cause_by_country);
+		// I'm not having luck with this
+		// // I'm working on making this object to facilitate sorting
+		// cause_by_country = d3.nest()
+		// 		.key( function(d) { return d.iso3; })
+		// 		.sortKeys(d3.ascending)
+		// 		.key( function(d) { return d.causename; })
+		// 		.sortValues(d3.descending)
+		// 		// .sortKeys(function(a,b) {
+		// 		// 	return parseFloat(b[0].avg_death_rate) - parseFloat(a[0].avg_death_rate);
+		// 		// })
+		// 		// .key( function(d) { return d.causename})
+		// 		// .sortValues(function(a,b) {
+		// 			// console.log(a[0].causename);
+		// 			// console.log(a[0].avg_death_rate);
+		// 			// console.log(b[0].causename);
+		// 			// console.log(b[0].avg_death_rate);
+		// 			// return 1;
+		// 			// return parseFloat(b[0].avg_death_rate) - parseFloat(a[0].avg_death_rate);
+		// 		// })
+		// 		.rollup( function(d) { 
+		// 			// console.log(d);
+		// 			return +d[0].avg_death_rate; })
+		// 		.entries(data);
+		// console.log(cause_by_country);
 
 		mort_data = data_by_country;
 
@@ -281,6 +302,8 @@ function clicked(d) {
 	if (active.node() === this) return reset();
 	active.classed("active", false);
 	active = d3.select(this).classed("active", true);
+	console.log(active._groups[0][0].__data__.id);
+	console.log(d.id);
 
 	var bounds = path.bounds(d),
 			dx = bounds[1][0] - bounds[0][0],
@@ -296,11 +319,56 @@ function clicked(d) {
 			 	.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
 	get_year_data_for_cause(d);
 	mort_line_plot(d, year_data, graph1_svg);
-	d3.select('#graph_titles').classed("hidden", false);
+	
+	
+	show_top_causes(d.id);
+	d3.select('#initial').classed("hidden", true);
+	d3.select('#chart_titles').classed("hidden", false);
 	d3.select('#supplemental_graphs').classed("hidden", false);
 	d3.select('#sup_graph1').classed("hidden", false);
 	d3.select('#sg1_legend').classed("hidden", false);
-	d3.select('#sup_graph2').classed("hidden", false);
+	d3.select('#data_table').classed("hidden", false);
+}
+
+var graph2_svg = d3.select('#data_table')
+					.append('svg')
+					.attr('width', '100%')
+					.attr('height', '200');
+
+function show_top_causes(f) {
+	var sorted_data = get_sorted_ctry_data(f);
+	var sorted_slice = sorted_data.slice(0,5);
+	console.log(sorted_data);
+	console.log(sorted_slice);
+	var detailsHtml = Mustache.render(template, sorted_slice);
+	d3.select('#data_table').html(detailsHtml);
+
+}
+
+function tabulate_top_causes(d_slice, graph_svg) {
+	var table = graph_svg.append('foreignObject')
+						 .attr('width', graph_svg.width)
+						 .attr('height', graph_svg.height)
+						 .append("xhtml:table");
+	var header = [
+				  	{ head: 'Cause',
+				   	  cl: 'cause', 
+				   	  html: function(d) {return d[0]; }
+				  	},
+				  	{ head: 'Avg. Death Rate (per 100k pop)', 
+				  	  cl: 'center', 
+				  	  html: function(d) { return d[1]; }
+				  	}
+				 ];
+	table.append('table')
+	table.append('thead').append('tr')
+		 .selectAll('th')
+		   .data(header).enter()
+		   .append('th')
+		   .attr('class', function(d) { return d.cl; })
+		   .style('width',graph_svg.width/2)
+		   .text(function(d) { return d.head; });
+
 }
 
 function reset() {
@@ -354,6 +422,18 @@ function get_value_of_year_datum(f, yr, ck=current_key) {
 	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(ck)][yr];
 }
 
+// This takes a country iso3 id and 
+// returns a sorted array of causenames and avg death rates
+function get_sorted_ctry_data(f) {
+	var sortable = [];	
+	var local_sort = mort_data['$'.concat(f)].entries();
+	for (i = 0; i < local_sort.length; i++) {
+		sortable.push({key: local_sort[i].key, value: +local_sort[i].value.avg_death_rate});
+	}
+	local_sort = sortable.sort(function(a,b) { return b.value - a.value;});
+	return local_sort;  
+}
+
 // This functiion updates the year_data object for the current cause
 // f: 	a geojson features object, used to get a location id
 function get_year_data_for_cause(f) {
@@ -371,10 +451,12 @@ function get_year_data_for_cause(f) {
 	}
 }
 
+
+
 var left_pad = 35;
 var top_pad = 20;
 var bot_pad = 30;
-var right_pad = 23;
+var right_pad = 30;
 var graph1_svg = d3.select('#sup_graph1')
 					.append('svg')
 					.attr('width', '100%')
