@@ -14,6 +14,13 @@ var ctry_color;
 var current_key = 'All_Causes';
 var current_year = '2000';
 
+var years = [
+	'2000','2001','2002','2003',
+	'2004','2005','2006','2007',
+	'2008','2009','2010','2011',
+	'2012','2013','2014','2015'
+];
+
 var year_data = [
 	{
 		year: '2000',
@@ -219,7 +226,7 @@ d3.json("countries_geo.json", function(geojson) {
 				.center(map_scale.center)
 				.translate([w/2, h/2]);
 
-	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
+	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx_avg.csv", function(data) {
 
 		data_by_country = d3.nest()
 				.key( function(d) { return d.iso3; })
@@ -232,7 +239,7 @@ d3.json("countries_geo.json", function(geojson) {
 		cause_by_country = d3.nest()
 				.key( function(d) { return d.iso3; })
 				.key( function(d) { return d.causename})
-				.rollup( function(d) { return parseFloat(d['2000']) + parseFloat(d['2001'])})
+				.rollup( function(d) { return d[0].avg_death_rate; })
 				.map(data);
 		console.log(cause_by_country);
 
@@ -249,6 +256,7 @@ d3.json("countries_geo.json", function(geojson) {
 		update_map_colors();
 	});
 });
+
 
 function update_map_colors() {
 	color_fill.domain([
@@ -408,8 +416,8 @@ function mort_line_plot(f, data, graph_svg) {
 				.x( function(d) { return time_scale(parse_year(String(d.year))); })
 				.y( function(d) { return death_scale(parseInt(d.key_cause_datum));});
 	
-	graph_svg.append('text').text('hi');
-	console.log(function(d) { return extent(d.year);});
+	// graph_svg.append('text').text('hi');
+	// console.log(function(d) { return extent(d.year);});
 	graph_svg.append('path')
 				.datum(local_data)
 				.attr('class', 'line')
@@ -434,7 +442,7 @@ function mort_line_plot(f, data, graph_svg) {
 			 .attr('class', 'axis')
 			 .attr('transform', 'translate ('+left_pad+',0)')
 			 .call(death_axis);
-	console.log(f.properties);
+	// console.log(f.properties);
 	graph_svg.append('text')
 			 .attr('x', this_w/2)
 			 .attr('y', top_pad*4/5)
@@ -445,7 +453,7 @@ function mort_line_plot(f, data, graph_svg) {
 	var svg_legend = graph_svg.append('svg')
 						.attr('width', this_w*.15)
 						.attr('height', 40);
-	console.log(this_w*8);
+	// console.log(this_w*8);
 	var this_legend = svg_legend.selectAll('#sg1_legend')
 								.data(legend_labels)
 								.enter().append('g')
