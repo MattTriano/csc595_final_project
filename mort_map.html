@@ -10,7 +10,7 @@
     <div class="container">
       <div class='row'>
         <h3>Causes of Mortality</h3>
-        <select id="select_key">
+        <select id="select_key" class='six columns'>
           <option value="All_Causes" selected="selected">All Causes</option>
 
             <option value="Communicable_maternal_perinatal_and_nutritional_conditions">&emsp;Communicable, maternal, perinatal and nutritional conditions</option>
@@ -230,12 +230,9 @@
                 <option value="Self-harm">&emsp;&emsp;&emsp;Self-harm</option>
                 <option value="Interpersonal_violence">&emsp;&emsp;&emsp;Interpersonal violence</option>
                 <option value="Collective_violence_and_legal_intervention">&emsp;&emsp;&emsp;Collective violence and legal intervention</option>
-
-
-
         </select>
 
-        <select id='select_year'>
+        <!-- <select id='select_year'>
           <option value='2000' selected='selected'>2000</option>
           <option value='2001'>2001</option>
           <option value='2002'>2002</option>
@@ -252,11 +249,13 @@
           <option value='2013'>2013</option>
           <option value='2014'>2014</option>
           <option value='2015'>2015</option>
-        </select>
-        <select id='select_colorstyle'>
+        </select> -->
+        
+        <select id='select_colorstyle' class='three columns'>
           <option value='by_all_years' selected='selected'>Scale Color By All Years</option>
           <option value='by_sel_year'>Scale Color By Selected Year</option>
         </select>
+        <input type='range' min='2000' max='2015' value='2000' class='slider two columns' id='year_slct'>
       </div>
 
         <div id="choropleth"></div>

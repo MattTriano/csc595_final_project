@@ -101,7 +101,7 @@ var year_data = [
 		all_cause_datum: -1,
 		key_cause_datum: -1
 	}
-]
+]					
 
 var svg = d3.select('#choropleth').append('svg')
 		.attr('preserveAspectRatio', 'xMidYMid')
@@ -143,6 +143,12 @@ d3.select('#select_key').on('change', function(a) {
 });
 
 d3.select('#select_year').on('change', function(a) {
+  // Change the current key and call the function to update the colors.
+  current_year = d3.select(this).property('value');
+  update_map_colors();
+});
+
+d3.select('#year_slct').on('change', function(a) {
   // Change the current key and call the function to update the colors.
   current_year = d3.select(this).property('value');
   update_map_colors();
