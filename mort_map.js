@@ -1,6 +1,7 @@
 // Useful reading
 // On accessing nested data: https://bost.ocks.org/mike/nest/
 // On making a legend: https://bl.ocks.org/mbostock/4573883
+// Lukas Vonlanthen's d3 map tutorial:  http://data-map-d3.readthedocs.io/en/latest/index.html
 
 // Setting height and width (should match the CSS)
 var w = 1100;
@@ -9,21 +10,16 @@ var active = d3.select(null);
 
 var ctry_color;
 
-// Initializing a default key, and (temporarily, until I figure out a smart
-// way to handle time series data) year.
+// Initializing a default key and default year
 var current_key = 'All_Causes';
 var current_year = '2000';
+var current_colorscale = 'by_sel_year';
 
+// This prepares a Mustache parser for the table of top causes of mortality
 var template = d3.select('#template').html();
 Mustache.parse(template);
 
-// var years = [
-// 	'2000','2001','2002','2003',
-// 	'2004','2005','2006','2007',
-// 	'2008','2009','2010','2011',
-// 	'2012','2013','2014','2015'
-// ];
-
+// This was a hacky way of making data accessible for the line graph
 var year_data = [
 	{
 		year: '2000',
@@ -108,12 +104,13 @@ var year_data = [
 ]
 
 var svg = d3.select('#choropleth').append('svg')
-			.attr('preserveAspectRatio', 'xMidYMid')
-			.attr('viewBox', '0 0 ' + w + ' ' + h);
+		.attr('preserveAspectRatio', 'xMidYMid')
+		.attr('viewBox', '0 0 ' + w + ' ' + h);
 
+// Initializes a tooltip
 var tooltip = d3.select("#choropleth")
-  .append("div")
-  .attr("class", "tooltip hidden");
+  		.append("div")
+  		.attr("class", "tooltip hidden");
 
 // Setting the map projection
 var projection = d3.geoNaturalEarth()
@@ -127,16 +124,17 @@ var path = d3.geoPath()
 var map_features = svg.append('g')
 	.attr('class', 'features.id');
 
+// This prepares a scaler that determines what color to use for a choropleth path
 var color_fill = d3.scaleQuantize()
 	.range(['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']);
 
 // Initializing an object to store data broken down by country
 var data_by_country = d3.map();
+var data_by_cause = d3.map();
 
 // Initializing a variable to hold CSV (mort_data) and geojson data
 var mort_data;
 var geojson_data;
-// var sorted_data;
 
 d3.select('#select_key').on('change', function(a) {
   // Change the current key and call the function to update the colors.
@@ -150,11 +148,17 @@ d3.select('#select_year').on('change', function(a) {
   update_map_colors();
 });
 
+d3.select('#select_colorstyle').on('change', function(a) {
+  // Change the current key and call the function to update the colors.
+  current_colorscale = d3.select(this).property('value');
+  update_map_colors();
+});
+
 // Code to prepare the legend
 var format_value = d3.format('.0f');
 var legend_scale = d3.scaleLinear();
 var legend_x_axis = d3.axisBottom(legend_scale)
-		.tickSize(13)
+		.tickSize(12)
 		.tickFormat( function(d) { return format_value(d); });
 
 var legend_svg = d3.select('#legend')
@@ -182,6 +186,110 @@ g.append('text')
 
 // This listens to a window-resizing event and resizes the legend on event 
 window.onresize = update_legend;
+
+// Now for that actual 
+
+
+d3.json("countries_geo.json", function(geojson) {
+	var map_scale =  map_scaler(geojson);
+	geojson_data = geojson;
+
+	projection.scale(map_scale.scale)
+				.center(map_scale.center)
+				.translate([w/2, h/2]);
+
+	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx_avg.csv", function(data) {
+
+		data_by_country = d3.nest()
+				.key( function(d) { return d.iso3; })
+				.key( function(d) { return d.causename; })
+				.rollup( function(d) { return d[0]; })
+				.map(data);
+		console.log(data_by_country); // this is the core data structure I use
+
+		data_by_cause = d3.nest()
+				.key( function(d) { return d.causename; })
+				.key( function(d) { return d.iso3; })
+				.rollup( function(d) { return data_by_cause_typesetter(d[0]); })
+				.map(data);
+		console.log(data_by_cause);
+
+		mort_data = data_by_country;
+
+		map_features.selectAll('path')
+		  			  .data(geojson.features)
+		  			.enter().append('path')
+		  			  .attr('d', path)
+		  			  .on("click", clicked)
+		  			  .on('mousemove', show_tooltip)
+		  			  .on('mouseout', hide_tooltip);
+
+		update_map_colors();
+	});
+});
+
+// This function assists loading the data_by_cause data structure
+// by setting datatypes for the values
+function data_by_cause_typesetter(d_cause) {
+	var f=[];
+	var minmax = [];
+	var yr;
+	for (i = 2000; i <= 2016; i++){
+		yr = String(i);
+		f[yr] = parseFloat(d_cause[yr]);
+		if (f[yr] > 0) {
+			minmax.push(f[yr]);
+		} 
+	}
+	f['max'] = Math.max.apply(null, minmax);
+	f['min'] = Math.min.apply(null, minmax);
+	f.avg_death_rate = parseFloat(d_cause.avg_death_rate);
+	f.country_name = d_cause.country_name;
+	f.iso3 = d_cause.iso3;
+	return f;	
+}
+
+// This updates the colors of the map
+function update_map_colors() {
+	if (current_colorscale === 'by_sel_year'){
+		color_fill.domain([
+			d3.min(geojson_data.features, function(d) {
+				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); }),
+			d3.max(geojson_data.features, function(d) { 
+				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
+		]);
+	} else {
+		color_fill.domain([
+			d3.min(geojson_data.features, function(d) { 
+				return +(get_max_min(d.id).min); }),
+			d3.max(geojson_data.features, function(d) { 
+				return +(get_max_min(d.id).max); })
+			]);
+	};
+	map_features.selectAll('path')
+		.attr('fill', function(d) { 
+			ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
+			if (typeof ctry_color != 'undefined') {
+				return color_fill(ctry_color);
+			} else {
+				return '#808080';  // Returns grey if the color is undefined (ie no data)
+			};
+		});
+	update_legend();
+}
+
+function get_max_min(d_id, ck=current_key) {
+	var tmp = data_by_cause['$'.concat(ck)] && data_by_cause['$'.concat(ck)]['$'.concat(d_id)];
+	if (typeof tmp != 'undefined'){
+		return tmp;
+	} else {
+		return {
+			'max' : 0,
+			'min': 0
+		};
+	}
+	return data_by_cause['$'.concat(ck)] && data_by_cause['$'.concat(ck)]['$'.concat(d_id)];
+}
 
 function update_legend() {
 	var legend_w = d3.select('#choropleth').node()
@@ -217,85 +325,6 @@ function update_legend() {
 	g.selectAll('text.legend_text').text(selected_key.text + ' [deaths per 100k pop. in ' + current_year +']');
 	legend_x_axis.tickValues(legend_domain);
 	g.call(legend_x_axis);
-}
-
-
-d3.json("countries_geo.json", function(geojson) {
-	// console.log(geojson);
-
-	var map_scale =  map_scaler(geojson);
-	geojson_data = geojson;
-
-	projection.scale(map_scale.scale)
-				.center(map_scale.center)
-				.translate([w/2, h/2]);
-
-	d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx_avg.csv", function(data) {
-
-		data_by_country = d3.nest()
-				.key( function(d) { return d.iso3; })
-				.key( function(d) { return d.causename; })
-				.rollup( function(d) { return d[0]; })
-				.map(data);
-		console.log(data_by_country); // this is the core data structure I use
-
-		// I'm not having luck with this
-		// // I'm working on making this object to facilitate sorting
-		// cause_by_country = d3.nest()
-		// 		.key( function(d) { return d.iso3; })
-		// 		.sortKeys(d3.ascending)
-		// 		.key( function(d) { return d.causename; })
-		// 		.sortValues(d3.descending)
-		// 		// .sortKeys(function(a,b) {
-		// 		// 	return parseFloat(b[0].avg_death_rate) - parseFloat(a[0].avg_death_rate);
-		// 		// })
-		// 		// .key( function(d) { return d.causename})
-		// 		// .sortValues(function(a,b) {
-		// 			// console.log(a[0].causename);
-		// 			// console.log(a[0].avg_death_rate);
-		// 			// console.log(b[0].causename);
-		// 			// console.log(b[0].avg_death_rate);
-		// 			// return 1;
-		// 			// return parseFloat(b[0].avg_death_rate) - parseFloat(a[0].avg_death_rate);
-		// 		// })
-		// 		.rollup( function(d) { 
-		// 			// console.log(d);
-		// 			return +d[0].avg_death_rate; })
-		// 		.entries(data);
-		// console.log(cause_by_country);
-
-		mort_data = data_by_country;
-
-		map_features.selectAll('path')
-		  			  .data(geojson.features)
-		  			.enter().append('path')
-		  			  .attr('d', path)
-		  			  .on("click", clicked)
-		  			  .on('mousemove', show_tooltip)
-		  			  .on('mouseout', hide_tooltip);
-
-		update_map_colors();
-	});
-});
-
-
-function update_map_colors() {
-	color_fill.domain([
-			d3.min(geojson_data.features, function(d) { 
-				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); }),
-			d3.max(geojson_data.features, function(d) { 
-				return +(get_value_of_datum(data_by_country['$'.concat(d.id)])); })
-		]);
-	map_features.selectAll('path')
-				.attr('fill', function(d) { 
-					ctry_color = (get_value_of_datum(data_by_country['$'.concat(d.id)])); 
-					if (typeof ctry_color != 'undefined') {
-						return color_fill(ctry_color);
-					} else {
-						return '#808080';  // Returns grey if the color is undefined (ie no data)
-					};
-				});
-	update_legend();
 }
 
 function clicked(d) {
@@ -335,31 +364,31 @@ var graph2_svg = d3.select('#data_table')
 					.attr('width', '100%')
 					.attr('height', '200');
 
-function show_top_causes(f) {
+function show_top_causes(f, top_n=5) {
 	var sorted_data = get_sorted_ctry_data(f);
-	var sorted_slice = sorted_data.slice(0,5);
-	console.log(sorted_data);
-	console.log(sorted_slice);
+	var sorted_slice = sorted_data.slice(0,top_n);
 	var detailsHtml = Mustache.render(template, sorted_slice);
 	d3.select('#data_table').html(detailsHtml);
 
 }
 
+// 
 function tabulate_top_causes(d_slice, graph_svg) {
+	console.log(d_slice);
 	var table = graph_svg.append('foreignObject')
 						 .attr('width', graph_svg.width)
 						 .attr('height', graph_svg.height)
 						 .append("xhtml:table");
 	var header = [
-				  	{ head: 'Cause',
-				   	  cl: 'cause', 
-				   	  html: function(d) {return d[0]; }
-				  	},
-				  	{ head: 'Avg. Death Rate (per 100k pop)', 
-				  	  cl: 'center', 
-				  	  html: function(d) { return d[1]; }
-				  	}
-				 ];
+				{ 	head: 'Cause',
+					cl: 'cause', 
+					html: function(d) {return d[0]; }
+				},
+				{ 	head: 'Avg. Death Rate (per 100k pop)', 
+					cl: 'center', 
+					html: function(d) { return d[1]; }
+				}
+				];
 	table.append('table')
 	table.append('thead').append('tr')
 		 .selectAll('th')
@@ -368,7 +397,6 @@ function tabulate_top_causes(d_slice, graph_svg) {
 		   .attr('class', function(d) { return d.cl; })
 		   .style('width',graph_svg.width/2)
 		   .text(function(d) { return d.head; });
-
 }
 
 function reset() {
@@ -381,19 +409,20 @@ function reset() {
 		.attr("transform", "");
 }
 
+// This takes a country's geojson feature object
 function show_tooltip(f) {
-  var id = f.id;   // Get the ID of the feature.
-  var d = data_by_country['$'.concat(id)]; // Use the ID to get the data entry
-  var mouse = d3.mouse(d3.select('#choropleth').node()).map(
-  	function(d) { return parseInt(d); 
-  });
-  var ctry_name = get_country_name(f)
-  var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
-  var top = mouse[1] + 25;
-  // Show the tooltip (unhide it) and set the name of the data entry.
-  tooltip.classed('hidden', false)
-  	.attr("style", "left:" + left + "px; top:" + top + "px")
-    .html(ctry_name);
+	var id = f.id;   // country id (iso3 code)
+	var d = data_by_country['$'.concat(id)]; 
+	// mouse contains a list containing the x and y pixel locations
+	// of the cursor, to use in positioning the tooltip
+	var mouse = d3.mouse(d3.select('#choropleth').node()).map(
+		function(d) { return parseInt(d); });
+	var ctry_name = get_country_name(f); 
+	var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
+	var top = mouse[1] + 35;
+	tooltip.classed('hidden', false)
+			.attr("style", "left:" + left + "px; top:" + top + "px")
+			.html(ctry_name);
 }
 
 function hide_tooltip() {
@@ -422,8 +451,8 @@ function get_value_of_year_datum(f, yr, ck=current_key) {
 	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(ck)][yr];
 }
 
-// This takes a country iso3 id and 
-// returns a sorted array of causenames and avg death rates
+// This takes a country iso3 id and returns a sorted array of 
+// causenames and avg death rates
 function get_sorted_ctry_data(f) {
 	var sortable = [];	
 	var local_sort = mort_data['$'.concat(f)].entries();
@@ -451,8 +480,6 @@ function get_year_data_for_cause(f) {
 	}
 }
 
-
-
 var left_pad = 35;
 var top_pad = 20;
 var bot_pad = 30;
@@ -461,7 +488,6 @@ var graph1_svg = d3.select('#sup_graph1')
 					.append('svg')
 					.attr('width', '100%')
 					.attr('height', '200');
-					// .attr('preserveAspectRatio', 'xMinYMin');
 
 var	parse_year = d3.timeParse("%Y");
 var format_year = d3.timeFormat('%Y')
@@ -474,8 +500,7 @@ function mort_line_plot(f, data, graph_svg) {
 
 	var frame_h = get_svg_height();
 	var frame_w = get_svg_width();
-	var this_w = 0.5 * get_svg_width();
-	// var this_h = 0.25 * get_svg_height();
+	var this_w = 0.5 * frame_w;
 	var this_h = 200;
 	time_scale.domain([new Date(2000,0), new Date(2015,0)])
 			  .range([left_pad, this_w-right_pad]);
@@ -498,8 +523,6 @@ function mort_line_plot(f, data, graph_svg) {
 				.x( function(d) { return time_scale(parse_year(String(d.year))); })
 				.y( function(d) { return death_scale(parseInt(d.key_cause_datum));});
 	
-	// graph_svg.append('text').text('hi');
-	// console.log(function(d) { return extent(d.year);});
 	graph_svg.append('path')
 				.datum(local_data)
 				.attr('class', 'line')
@@ -524,7 +547,7 @@ function mort_line_plot(f, data, graph_svg) {
 			 .attr('class', 'axis')
 			 .attr('transform', 'translate ('+left_pad+',0)')
 			 .call(death_axis);
-	// console.log(f.properties);
+
 	graph_svg.append('text')
 			 .attr('x', this_w/2)
 			 .attr('y', top_pad*4/5)
@@ -535,7 +558,7 @@ function mort_line_plot(f, data, graph_svg) {
 	var svg_legend = graph_svg.append('svg')
 						.attr('width', this_w*.15)
 						.attr('height', 40);
-	// console.log(this_w*8);
+
 	var this_legend = svg_legend.selectAll('#sg1_legend')
 								.data(legend_labels)
 								.enter().append('g')
@@ -573,14 +596,13 @@ function mort_line_plot(f, data, graph_svg) {
 			   .text(function(d) { return d[1].label; })
 			   .style('font-size',fant);
 
-	
-
-
 	// this is just a test object to confirm an image appears
 	// graph_svg.append('circle').attr('cx',30).attr('cy',30).attr('r',20);
-
 }
 
+// I made these functions to aid in resizing SVGs both initially and
+// in response to window resizing events. I ran into some difficulties
+// with this and time constraints didn't allow me to fully debug that
 function get_svg_width() {
 	return d3.select(svg).node()._groups[0][0].width.animVal.value;
 }
@@ -589,7 +611,7 @@ function get_svg_height() {
 }
 
 
-// This function takes a geojson object and determines appropriate
+// This function takes a geojson features object and determines appropriate
 // scale and center coordinates based on the extents of the geojson
 // paths (ie the country boundaries) and the size of the SVG frame.
 // Returns: an object containing the 'scale' and 'center' 

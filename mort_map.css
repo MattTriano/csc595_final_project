@@ -5,6 +5,15 @@ path {
 	stroke: #000;
 	stroke-width: 0.3px;
 }
+table {
+  margin-bottom: 0;
+}
+td, th {
+  padding: 6px 9px;
+}
+td {
+  text-align: right;
+}
 g.features {
   stroke: #d8d8d8;
   stroke-width: 0.5;
@@ -40,12 +49,12 @@ g.features path:hover {
 .tooltip {
   font-weight: bold;
   font-size: 1.5rem;
-  padding: 0.5rem;
-  border: 1px solid silver;
-  color: #222;
+  padding: 1rem;
+  border: 2px #C0C0C0;
+  color: #090909;
   background: #fff;
-  border-radius: 5px;
-  box-shadow: 0px 0px 5px 0px #a6a6a6;
+  border-radius: 4px;
+  box-shadow: 0px 0px 3px 0px #a6a6a6;
   opacity: 0.9;
   position: absolute;
 }
@@ -58,44 +67,17 @@ g.features path:hover {
 #details, #initial {
   margin-top: 2rem;
 }
-
-table {
-  margin-bottom: 0;
-}
-td, th {
-  padding: 6px 9px;
-}
-td {
-  text-align: right;
-}
 #data_table {
 	margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
 	font-size: 1.1rem;
 }
-
 #choropleth {
   font-size: 0; /* to prevent margin at bottom of map container */
   border: 1px solid silver;
   background: #E6E6E6;
   background-color: #a7cdf2;
 }
-/*svg {
-	background-color: #a7cdf2;	
-}*/
-
 .feature.active {
 	border: 3px black;
 }
-/*.axis path, .axis line {
-	fill: none;
-	stroke: none;
-}*/
-
-.Oranges .q0-7{fill:rgb(254,237,222)}
-.Oranges .q1-7{fill:rgb(253,208,162)} 
-.Oranges .q2-7{fill:rgb(253,174,107)} 
-.Oranges .q3-7{fill:rgb(253,141,60)} 
-.Oranges .q4-7{fill:rgb(241,105,19)} 
-.Oranges .q5-7{fill:rgb(217,72,1)} 
-.Oranges .q6-7{fill:rgb(140,45,4)}

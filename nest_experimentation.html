@@ -1,0 +1,63 @@
+<!-- This file is for working through Mike Bostock's nested selection -->
+<!-- explanation at the site below -->
+<!-- https://bost.ocks.org/mike/nest/ -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>D3: Setting path fills dynamically to generate a choropleth</title>
+  </head>
+  <body>
+    <h3>Causes of Mortality</h3>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <table>
+      <thead>
+        <tr><td>  A</td><td>  B</td><td>  C</td><td>  D</td></tr>
+      </thead>
+      <tbody>
+        <tr><td>  0</td><td>  1</td><td>  2</td><td>  3</td></tr>
+        <tr><td>  4</td><td>  5</td><td>  6</td><td>  7</td></tr>
+        <tr><td>  8</td><td>  9</td><td> 10</td><td> 11</td></tr>
+        <tr><td> 12</td><td> 13</td><td> 14</td><td> 15</td></tr>
+      </tbody>
+    </table>
+
+    <script type="text/javascript">
+      var td_flat = d3.selectAll("tbody td");
+      var tr_td = d3.selectAll("tbody tr").selectAll("td");
+
+      tr_td.style("color", function(d, i) { return i ? null : "red"; });
+
+      var matrix = [
+        [ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11],
+        [12, 13, 14, 15],
+      ];
+
+      // This produced _enter, _exit, and _groups arrays of arrays.
+      // Only _groups was populated. 
+      var tr_td_matrix = d3.selectAll("tbody tr")
+                   .data(matrix)
+                 .selectAll("td")
+                   .data(function(d, i) { return d; }); // d is matrix[i]
+
+      // This produces a flat array containing 4 td elements
+      var tr_matrix = d3.selectAll("tbody tr")
+                  .data(matrix);
+
+      // This secondary selection (off of tr_matrix) produces the array of arrays
+      // and data iterates over the 4 td elements in tr_matrix, further splitting
+      // the nodes 
+      var td_matrix = tr_matrix.selectAll("td")
+                        .data(function(d) { return d; }); // matrix[i]
+
+
+    </script>
+
+
+	<!-- <script src="//d3js.org/d3-geo-projection.v1.min.js"></script> -->
+	<!-- <script src="mort_map.js"></script> -->
+  </body>
+</html>

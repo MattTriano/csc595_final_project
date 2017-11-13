@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<!-- https://bl.ocks.org/mbostock/2206590 -->
+<!-- https://bl.ocks.org/rhuille/c4c89a3475d23d6f52d15f5cc76f4856 -->
+<!-- http://data-map-d3.readthedocs.io/en/latest/index.html -->
+<!-- To start a local server on a Windows machine, navigate  -->
+<!-- to a parent directory of the files you want to run and enter -->
+<!-- "python -m http.server 8888 &."  (everything between "")-->
+<!-- then go to Chrome and enter "localhost:8888" in the URL bar -->
+<!-- http://data-map-d3.readthedocs.io/en/latest/steps/step_04.html#step-04 -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Setting path fills dynamically to generate a choropleth</title>
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="//d3js.org/d3-geo-projection.v1.min.js"></script>
+		<link href="http://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" rel="stylesheet" type="text/css">
+		<!-- <script src="https://unpkg.com/topojson-client@3"></script> -->
+		<style type="text/css">
+			/* No style rules here yet */		
+			path {
+				stroke: #000;
+				stroke-width: 0.2px;
+			}
+			svg {
+				background-color: #a7cdf2;	
+			}
+			g.features {
+				stroke: #d8d8d8;
+				stroke-width: 0.5;
+			}
+			g.features path:hover {
+				opacity: 0.5;
+			}
+			.tooltip {
+				font-weight: bold;
+				padding: 0.5rem;
+				border: 1px solid silver;
+			}
+			.hidden {
+				display: none;
+			}
+
+			.background {
+				fill: none;
+				pointer-events: all;
+			}
+			.feature.active {
+				fill: orange;
+			}
+			.YlGnBu .q0-7{fill:rgb(255,255,217)}
+			.YlGnBu .q1-7{fill:rgb(237,248,177)}
+			.YlGnBu .q2-7{fill:rgb(199,233,180)}
+			.YlGnBu .q3-7{fill:rgb(127,205,187)}
+			.YlGnBu .q4-7{fill:rgb(65,182,196)}
+			.YlGnBu .q5-7{fill:rgb(29,145,192)}
+			.YlGnBu .q6-7{fill:rgb(34,94,168)}
+		</style>
+	</head>
+	<body>
+		<div class="container"> 
+			<div class="row"> 
+				<select id="select_key">
+					<option value="Acute_glomerulonephritis">Acute glomerulonephritis</option>
+					<option value="Acute_hepatitis_A">Acute hepatitis A</option>
+					<option value="Acute_hepatitis_B">Acute hepatitis B</option>
+					<option value="Acute_hepatitis_C">Acute hepatitis C</option>
+					<option value="Acute_hepatitis_E">Acute hepatitis E</option>
+					<option value="African_trypanosomiasis">African trypanosomiasis</option>
+					<option value="Alcohol_use_disorders">Alcohol use disorders</option>
+					<option value="All_Causes" selected="selected">All Causes</option>
+					<option value="Alzheimer_disease_and_other_dementias">Alzheimer disease and other dementias</option>
+					<option value="Amphetamine_use_disorders">Amphetamine use disorders</option>
+					<option value="Anxiety_disorders">Anxiety disorders</option>
+					<option value="Appendicitis">Appendicitis</option>
+					<option value="Ascariasis">Ascariasis</option>
+					<option value="Asthma">Asthma</option>
+					<option value="Attention_deficit/hyperactivity_syndrome">Attention deficit/hyperactivity syndrome</option>
+					<option value="Autism_and_Asperger_syndrome">Autism and Asperger syndrome</option>
+					<option value="Back_and_neck_pain">Back and neck pain</option>
+					<option value="Benign_prostatic_hyperplasia">Benign prostatic hyperplasia</option>
+					<option value="Bipolar_disorder">Bipolar disorder</option>
+					<option value="Birth_asphyxia_and_birth_trauma">Birth asphyxia and birth trauma</option>
+					<option value="Bladder_cancer">Bladder cancer</option>
+					<option value="Brain_and_nervous_system_cancers">Brain and nervous system cancers</option>
+					<option value="Breast_cancer">Breast cancer</option>
+					<option value="Cannabis_use_disorders">Cannabis use disorders</option>
+					<option value="Cardiomyopathy_myocarditis_endocarditis">Cardiomyopathy, myocarditis, endocarditis</option>
+					<option value="Cardiovascular_diseases">Cardiovascular diseases</option>
+					<option value="Cataracts">Cataracts</option>
+					<option value="Cervix_uteri_cancer">Cervix uteri cancer</option>
+					<option value="Chagas_disease">Chagas disease</option>
+					<option value="Childhood_behavioural_disorders">Childhood behavioural disorders</option>
+					<option value="Childhood-cluster_diseases">Childhood-cluster diseases</option>
+					<option value="Chlamydia">Chlamydia</option>
+					<option value="Chronic_kidney_disease_due_to_diabetes">Chronic kidney disease due to diabetes</option>
+					<option value="Chronic_obstructive_pulmonary_disease">Chronic obstructive pulmonary disease</option>
+					<option value="Cirrhosis_due_to_alcohol_use">Cirrhosis due to alcohol use</option>
+					<option value="Cirrhosis_due_to_hepatitis_B">Cirrhosis due to hepatitis B</option>
+					<option value="Cirrhosis_due_to_hepatitis_C">Cirrhosis due to hepatitis C</option>
+					<option value="Cirrhosis_of_the_liver">Cirrhosis of the liver</option>
+					<option value="Cleft_lip_and_cleft_palate">Cleft lip and cleft palate</option>
+					<option value="Cocaine_use_disorders">Cocaine use disorders</option>
+					<option value="Collective_violence_and_legal_intervention">Collective violence and legal intervention</option>
+					<option value="Colon_and_rectum_cancers">Colon and rectum cancers</option>
+					<option value="Communicable_maternal_perinatal_and_nutritional_conditions">Communicable, maternal, perinatal and nutritional conditions</option>
+					<option value="Conduct_disorder">Conduct disorder</option>
+					<option value="Congenital_anomalies">Congenital anomalies</option>
+					<option value="Congenital_heart_anomalies">Congenital heart anomalies</option>
+					<option value="Corpus_uteri_cancer">Corpus uteri cancer</option>
+					<option value="Cysticercosis">Cysticercosis</option>
+					<option value="Dengue">Dengue</option>
+					<option value="Dental_caries">Dental caries</option>
+					<option value="Depressive_disorders">Depressive disorders</option>
+					<option value="Diabetes_mellitus">Diabetes mellitus</option>
+					<option value="Diarrhoeal_diseases">Diarrhoeal diseases</option>
+					<option value="Digestive_diseases">Digestive diseases</option>
+					<option value="Diphtheria">Diphtheria</option>
+					<option value="Down_syndrome">Down syndrome</option>
+					<option value="Drowning">Drowning</option>
+					<option value="Drug_use_disorders">Drug use disorders</option>
+					<option value="Dysthymia">Dysthymia</option>
+					<option value="Eating_disorders">Eating disorders</option>
+					<option value="Echinococcosis">Echinococcosis</option>
+					<option value="Edentulism">Edentulism</option>
+					<option value="Encephalitis">Encephalitis</option>
+					<option value="Endocrine_blood_immune_disorders">Endocrine, blood, immune disorders</option>
+					<option value="Epilepsy">Epilepsy</option>
+					<option value="Exposure_to_mechanical_forces">Exposure to mechanical forces</option>
+					<option value="Falls">Falls</option>
+					<option value="Fire_heat_and_hot_substances">Fire, heat and hot substances</option>
+					<option value="Food-bourne_trematodes">Food-bourne trematodes</option>
+					<option value="Gallbladder_and_biliary_diseases">Gallbladder and biliary diseases</option>
+					<option value="Gallbladder_and_biliary_tract_cancer">Gallbladder and biliary tract cancer</option>
+					<option value="Gastritis_and_duodenitis">Gastritis and duodenitis</option>
+					<option value="Genital_herpes">Genital herpes</option>
+					<option value="Genitourinary_diseases">Genitourinary diseases</option>
+					<option value="Glaucoma">Glaucoma</option>
+					<option value="Gonorrhoea">Gonorrhoea</option>
+					<option value="Gout">Gout</option>
+					<option value="Gynecological_diseases">Gynecological diseases</option>
+					<option value="HIV/AIDS">HIV/AIDS</option>
+					<option value="Haemorrhagic_stroke">Haemorrhagic stroke</option>
+					<option value="Hepatitis">Hepatitis</option>
+					<option value="Hodgkin_lymphoma">Hodgkin lymphoma</option>
+					<option value="Hookworm_disease">Hookworm disease</option>
+					<option value="Hypertensive_heart_disease">Hypertensive heart disease</option>
+					<option value="Idiopathic_intellectual_disability">Idiopathic intellectual disability</option>
+					<option value="Infectious_and_parasitic_diseases">Infectious and parasitic diseases</option>
+					<option value="Infertility">Infertility</option>
+					<option value="Inflammatory_bowel_disease">Inflammatory bowel disease</option>
+					<option value="Injuries">Injuries</option>
+					<option value="Intentional_injuries">Intentional injuries</option>
+					<option value="Interpersonal_violence">Interpersonal violence</option>
+					<option value="Intestinal_nematode_infections">Intestinal nematode infections</option>
+					<option value="Iodine_deficiency">Iodine deficiency</option>
+					<option value="Iron-deficiency_anaemia">Iron-deficiency anaemia</option>
+					<option value="Ischaemic_heart_disease">Ischaemic heart disease</option>
+					<option value="Ischaemic_stroke">Ischaemic stroke</option>
+					<option value="Kidney_cancer">Kidney cancer</option>
+					<option value="Kidney_diseases">Kidney diseases</option>
+					<option value="Larynx_cancer">Larynx cancer</option>
+					<option value="Leishmaniasis">Leishmaniasis</option>
+					<option value="Leprosy">Leprosy</option>
+					<option value="Leukaemia">Leukaemia</option>
+					<option value="Lip_and_oral_cavity">Lip and oral cavity</option>
+					<option value="Liver_cancer">Liver cancer</option>
+					<option value="Liver_cancer_secondary_to_alcohol_use">Liver cancer secondary to alcohol use</option>
+					<option value="Liver_cancer_secondary_to_hepatitis_B">Liver cancer secondary to hepatitis B</option>
+					<option value="Liver_cancer_secondary_to_hepatitis_C">Liver cancer secondary to hepatitis C</option>
+					<option value="Lower_respiratory_infections">Lower respiratory infections</option>
+					<option value="Lymphatic_filariasis">Lymphatic filariasis</option>
+					<option value="Lymphomas_multiple_myeloma">Lymphomas, multiple myeloma</option>
+					<option value="Macular_degeneration">Macular degeneration</option>
+					<option value="Major_depressive_disorder">Major depressive disorder</option>
+					<option value="Malaria">Malaria</option>
+					<option value="Malignant_neoplasms">Malignant neoplasms</option>
+					<option value="Malignant_skin_melanoma">Malignant skin melanoma</option>
+					<option value="Maternal_conditions">Maternal conditions</option>
+					<option value="Measles">Measles</option>
+					<option value="Melanoma_and_other_skin_cancers">Melanoma and other skin cancers</option>
+					<option value="Meningitis">Meningitis</option>
+					<option value="Mental_and_substance_use_disorders">Mental and substance use disorders</option>
+					<option value="Mesothelioma">Mesothelioma</option>
+					<option value="Migraine">Migraine</option>
+					<option value="Mouth_and_oropharynx_cancers">Mouth and oropharynx cancers</option>
+					<option value="Multiple_myeloma">Multiple myeloma</option>
+					<option value="Multiple_sclerosis">Multiple sclerosis</option>
+					<option value="Musculoskeletal_diseases">Musculoskeletal diseases</option>
+					<option value="Nasopharynx">Nasopharynx</option>
+					<option value="Natural_disasters">Natural disasters</option>
+					<option value="Neonatal_conditions">Neonatal conditions</option>
+					<option value="Neonatal_sepsis_and_infections">Neonatal sepsis and infections</option>
+					<option value="Neural_tube_defects">Neural tube defects</option>
+					<option value="Neurological_conditions">Neurological conditions</option>
+					<option value="Non-Hodgkin_lymphoma">Non-Hodgkin lymphoma</option>
+					<option value="Non-melanoma_skin_cancer">Non-melanoma skin cancer</option>
+					<option value="Non-migraine_headache">Non-migraine headache</option>
+					<option value="Noncommunicable_diseases">Noncommunicable diseases</option>
+					<option value="Nutritional_deficiencies">Nutritional deficiencies</option>
+					<option value="Oesophagus_cancer">Oesophagus cancer</option>
+					<option value="Onchocerciasis">Onchocerciasis</option>
+					<option value="Opioid_use_disorders">Opioid use disorders</option>
+					<option value="Oral_conditions">Oral conditions</option>
+					<option value="Osteoarthritis">Osteoarthritis</option>
+					<option value="Other_STDs">Other STDs</option>
+					<option value="Other_chromosomal_anomalies">Other chromosomal anomalies</option>
+					<option value="Other_chronic_kidney_disease">Other chronic kidney disease</option>
+					<option value="Other_circulatory_diseases">Other circulatory diseases</option>
+					<option value="Other_congenital_anomalies">Other congenital anomalies</option>
+					<option value="Other_digestive_diseases">Other digestive diseases</option>
+					<option value="Other_drug_use_disorders">Other drug use disorders</option>
+					<option value="Other_endocrine_blood_and_immune_disorders">Other endocrine, blood and immune disorders</
+					ption>
+					<option value="Other_haemoglobinopathies_and_haemolytic_anaemias">Other haemoglobinopathies and haemolytic 
+					naemias</option>
+					<option value="Other_hearing_loss">Other hearing loss</option>
+					<option value="Other_infectious_diseases">Other infectious diseases</option>
+					<option value="Other_liver_cancer">Other liver cancer</option>
+					<option value="Other_liver_cirrhosis">Other liver cirrhosis</option>
+					<option value="Other_malignant_neoplasms">Other malignant neoplasms</option>
+					<option value="Other_mental_and_behavioural_disorders">Other mental and behavioural disorders</option>
+					<option value="Other_musculoskeletal_disorders">Other musculoskeletal disorders</option>
+					<option value="Other_neonatal_conditions">Other neonatal conditions</option>
+					<option value="Other_neoplasms">Other neoplasms</option>
+					<option value="Other_neurological_conditions">Other neurological conditions</option>
+					<option value="Other_nutritional_deficiencies">Other nutritional deficiencies</option>
+					<option value="Other_oral_disorders">Other oral disorders</option>
+					<option value="Other_pharynx">Other pharynx</option>
+					<option value="Other_respiratory_diseases">Other respiratory diseases</option>
+					<option value="Other_sense_organ_disorders">Other sense organ disorders</option>
+					<option value="Other_unintentional_injuries">Other unintentional injuries</option>
+					<option value="Other_urinary_diseases">Other urinary diseases</option>
+					<option value="Other_vision_loss">Other vision loss</option>
+					<option value="Otitis_media">Otitis media</option>
+					<option value="Ovary_cancer">Ovary cancer</option>
+					<option value="Pancreas_cancer">Pancreas cancer</option>
+					<option value="Pancreatitis">Pancreatitis</option>
+					<option value="Paralytic_ileus_and_intestinal_obstruction">Paralytic ileus and intestinal obstruction</option>
+					<option value="Parasitic_and_vector_diseases">Parasitic and vector diseases</option>
+					<option value="Parkinson_disease">Parkinson disease</option>
+					<option value="Peptic_ulcer_disease">Peptic ulcer disease</option>
+					<option value="Periodontal_disease">Periodontal disease</option>
+					<option value="Poisonings">Poisonings</option>
+					<option value="Preterm_birth_complications">Preterm birth complications</option>
+					<option value="Prostate_cancer">Prostate cancer</option>
+					<option value="Protein-energy_malnutrition">Protein-energy malnutrition</option>
+					<option value="Rabies">Rabies</option>
+					<option value="Respiratory_diseases">Respiratory diseases</option>
+					<option value="Respiratory_infections_">Respiratory infections </option>
+					<option value="Rheumatic_heart_disease">Rheumatic heart disease</option>
+					<option value="Rheumatoid_arthritis">Rheumatoid arthritis</option>
+					<option value="Road_injury">Road injury</option>
+					<option value="STDs_excluding_HIV">STDs excluding HIV</option>
+					<option value="Schistosomiasis">Schistosomiasis</option>
+					<option value="Schizophrenia">Schizophrenia</option>
+					<option value="Self-harm">Self-harm</option>
+					<option value="Sense_organt_diseases">Sense organ diseases</option>
+					<option value="Sickle_cell_disorders_and_trai">Sickle cell disorders and trait</option>
+					<option value="Skin_diseases">Skin diseases</option>
+					<option value="Stomach_cancer">Stomach cancer</option>
+					<option value="Stroke">Stroke</option>
+					<option value="Sudden_infant_death_syndrome">Sudden infant death syndrome</option>
+					<option value="Syphilis">Syphilis</option>
+					<option value="Testicular_cancer">Testicular cancer</option>
+					<option value="Tetanus">Tetanus</option>
+					<option value="Thalassaemias">Thalassaemias</option>
+					<option value="Thyroid_cancer">Thyroid cancer</option>
+					<option value="Trachea_bronchus_lung_cancers">Trachea, bronchus, lung cancers</option>
+					<option value="Trachoma">Trachoma</option>
+					<option value="Trichomoniasis">Trichomoniasis</option>
+					<option value="Trichuriasis">Trichuriasis</option>
+					<option value="Tuberculosis">Tuberculosis</option>
+					<option value="Uncorrected_refractive_errors">Uncorrected refractive errors</option>
+					<option value="Unintentional_injuries">Unintentional injuries</option>
+					<option value="Upper_respiratory_infections">Upper respiratory infections</option>
+					<option value="Urolithiasis">Urolithiasis</option>
+					<option value="Vitamin_A_deficiency">Vitamin A deficiency</option>
+					<option value="Whooping_cough">Whooping cough</option>
+					<option value="Yellow_fever">Yellow fever</option>
+				</select>
+			</div>
+		</div>
+		<div id="choropleth"></div>
+		<script type="text/javascript">
+
+			var currentKey = 'All_Causes';
+
+			//Width and height
+			var w = 980;
+			var h = 500;
+			var active = d3.select(null);
+
+			var map_data;
+
+			//Create SVG element
+			var svg = d3.select('#choropleth')
+						.append('svg')
+						.attr('width', w)
+						.attr('height', h);
+
+			// var g = svg.append("g")
+			// 			.style("stroke-width", "1.5px");
+
+			var mapFeatures = svg.append('g')
+					.attr('class', 'features YlGnBu');
+
+			// We add a <div> container for the tooltip, which is hidden by default.
+			var tooltip = d3.select("#choropleth")
+							.append("div")
+							.attr("class", "tooltip hidden");
+
+			//Define map projection
+			var projection = d3.geoNaturalEarth().scale(175);
+
+			// initializing a mapping for the data
+			var mort_data = d3.map();
+
+			//Define path generator
+			var path = d3.geoPath()
+							 .projection(projection);
+
+			var classes = d3.scaleQuantize()
+					.range(d3.range(7).map(function(i) { return 'q' + i + '-7'; }));
+
+			var format_num = d3.format('.2f');
+
+			// var legend_x = d3.scale.linear();
+
+			// var legend_x_axis = d3.svg.axis()
+			// 			.scale(legendX)
+			// 			.orient("bottom")
+			// 			.tickSize(10)
+			// 			.tickFormat(function(d) {
+			// 				return formatNumber(d);
+			// 			});
+
+						
+			//Load in GeoJSON data
+			d3.json("countries_geo.json", function(json) {
+				console.log(json);
+
+				d3.csv("WHO_mortality_data/mort_by_cause_per_capita_allages_btsx.csv", function(data) {
+					console.log(data);
+
+					map_data = data;
+
+					// This loads the data into a tree structure
+					var mort_data = d3.nest()
+							.key( function(d) { return d.causename; } ).sortKeys(d3.descending)
+							.key( function(d) { return d.iso3; } ).sortKeys(d3.descending)
+							// .key( function(d) { return d.sex; } ).sortKeys(d3.ascending)
+							.rollup( function(d) { return d[0]; })
+							.map(data);
+					console.log(mort_data);	
+
+					// mapFeatures.selectAll('path')
+					// 	// ... and then enter the data. For each feature, a <path>
+					// 	// element is added.
+					// 	.data(features.features)
+					// 	.enter().append('path')
+					// 	// As "d" attribute, we set the path of the feature.
+					// 	.attr('d', path);
+					// 	// When the mouse moves over a feature, show the tooltip.
+					// 	// .on('mousemove', showTooltip)
+					// 	// // When the mouse moves out of a feature, hide the tooltip.
+					// 	// .on('mouseout', hideTooltip)
+					// 	// // When a feature is clicked, show the details of it.
+					// 	// .on('click', showDetails);
+
+					svg.append('g')
+						 .attr('class', 'features YlGnBu')
+					   .selectAll('path')
+						 .data(json.features)
+					   .enter().append('path')
+					   	 .attr('class', function(d) {
+					   	 	// return classes(getValueOfData(mort_data[getIdOfFeature(d)]));
+					   	 	// return classes(mort_data[currentKey].iso3);
+					   	 	return classes(mort_data[d.features.id].All_Causes)
+					   	 })
+					   	 .attr('d', path);
+
+				
+
+					//Merge the ag. data and GeoJSON
+					//Loop through once for each ag. data value
+					for (var i = 0; i < data.length; i++) {
+				
+						//Grab state name
+						var dataCtry = data[i].country;
+						
+						//Grab data value, and convert from string to float
+						var dataValue = parseFloat(data[i].ihd_deaths);
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonCtry = json.features[j].id;
+							if (dataCtry == jsonCtry) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}
+					}
+					//Bind data and create one path per GeoJSON feature
+					g.selectAll("path")
+						.data(json.features)
+					 .enter().append("path")
+					 	.attr("d", path)
+					 	.style("fill", function(d) {
+					 		//Get data value
+					 		var value = d.properties.All_Causes;
+
+					 		if (value) {
+					 			//If value exists…
+					 			return color(value);
+					 		} else {
+					 			//If value is undefined…
+					 			return "#ccc";
+					 		}
+					 	})
+					 	.on("click", clicked);
+				});	
+			});
+
+			function clicked(d) {
+				if (active.node() === this) return reset();
+				active.classed("active", false);
+				active = d3.select(this).classed("active", true);
+
+				var bounds = path.bounds(d),
+					dx = bounds[1][0] - bounds[0][0],
+					dy = bounds[1][1] - bounds[0][1],
+					x = (bounds[0][0] + bounds[1][0]) / 2,
+					y = (bounds[0][1] + bounds[1][1]) / 2,
+					scale = .9 / Math.max(dx / w, dy / h),
+					translate = [w / 2 - scale * x, h / 2 - scale * y];
+
+				g.transition()
+					.duration(750)
+					.style("stroke-width", 1.5 / scale + "px")
+					.attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+			}
+
+			function showTooltip(f) {
+				// Get the ID of the feature.
+				var id = getIdOfFeature(f);
+				// Use the ID to get the data entry.
+				var d = dataById[id];
+				// Get the current mouse position (as integer)
+				var mouse = d3.mouse(d3.select('#choropleth').node()).map(
+					function(d) { return parseInt(d); }
+				);
+				// Calculate the absolute left and top offsets of the tooltip. If the
+				// mouse is close to the right border of the map, show the tooltip on
+				// the left.
+				var left = Math.min(w - 4 * d.country_name.length, mouse[0] + 5);
+				var top = mouse[1] + 25;
+				// Show the tooltip (unhide it) and set the name of the data entry.
+				// Set the position as calculated before.
+				tooltip.classed('hidden', false)
+				.attr("style", "left:" + left + "px; top:" + top + "px")
+				.html(d.name);
+			}
+
+			function getValueOfData(d) {
+				return +d[currentKey];
+			}
+
+			function getIdOfFeature(f) {
+				return f.features.id;
+			}
+
+			function reset() {
+				active.classed("active", false);
+				active = d3.select(null);
+
+				g.transition()
+					.duration(750)
+					.style("stroke-width", "1.5px")
+					.attr("transform", "");
+			}
+					
+		</script>
+	</body>
+</html>
