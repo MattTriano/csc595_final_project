@@ -9,10 +9,14 @@
   <body>
     <div class="container">
       <div class='row'>
-        <h3 id='vis_title'>Causes of Mortality &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
-          &emsp;&emsp;&emsp;&emsp;&emsp;
-          <span id="year_label">2000</span> </h3> 
-        
+        <h3 id='vis_title' class='six columns'>Causes of Mortality </h3>
+        <h3 class='three columns'></h3>
+        <h3 id="year_label" class='three columns'>2000<!-- </span> --> </h3>         
+      </div>
+      <div class='row'>
+        <h6 class='six columns'>Mortality Cause Selector:</h6>
+        <h6 class='three columns'>Scale Color By:</h6>
+        <h6 class='three columns'>Year Selector</h6>
       </div>
       <div class='row'>
         <select id="select_key" class='six columns'>
@@ -256,8 +260,8 @@
         </select> -->
         
         <select id='select_colorstyle' class='three columns'>
-          <option value='by_all_years' selected='selected'>Scale Color By All Years</option>
-          <option value='by_sel_year'>Scale Color By Selected Year</option>
+          <option value='by_all_years' selected='selected'>By All Years</option>
+          <option value='by_sel_year'>By Selected Year</option>
         </select>
         <input type='range' min='2000' max='2015' value='2000' class='slider two columns' id='year_slct'>
       </div>
@@ -288,10 +292,11 @@
           </div>
         </div>
         <div id="initial">
-          <h5>Instructions</h5>
+<!--           <h5>Instructions</h5> -->
           <ul>
-            <li>Change the Mortality Cause using the dropdown above the map.</li>
-            <li>Click a Country to see Death Rates over Time and Top Causes of Death</li>
+            <li>Change the mortality cause using the dropdown above the map.</li>
+            <li>Click a country to see death rates over time and top causes of death</li>
+            <li>Drag the Slider (or click it and use arrow keys) to change the year</li>
           </ul>
         </div>
         <div class="footer">
