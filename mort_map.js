@@ -151,6 +151,7 @@ d3.select('#select_year').on('change', function(a) {
 d3.select('#year_slct').on('change', function(a) {
   // Change the current key and call the function to update the colors.
   current_year = d3.select(this).property('value');
+  d3.select('#year_label').text(current_year);
   update_map_colors();
 });
 
