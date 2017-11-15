@@ -573,7 +573,8 @@ function mort_line_plot(f, data, graph_svg) {
 			 .attr('x', this_w/2)
 			 .attr('y', top_pad*4/5)
 			 .attr('text-anchor', 'middle')
-			 .text('Deaths from All Causes and from '+current_key+ ' for '+f.properties.name);
+			 .text('Deaths from All Causes and from '+current_key.replaceAll('_', ' ')
+			  + ' for '+f.properties.name);
 	var legend_labels = [{ label: 'All Causes',     color: '#fc8d62'},
 						{  label: 'Selected Cause', color: '#66c2a5'}];
 	var svg_legend = graph_svg.append('svg')
@@ -589,7 +590,7 @@ function mort_line_plot(f, data, graph_svg) {
 										return 'translate(0,' + i*15 + ')'
 									}
 								});
-	var fant = 10;
+	var font = 10;
 	graph_svg.append('rect')
 			 .datum(legend_labels)
 			   .attr('x',this_w*0.75)
@@ -602,7 +603,7 @@ function mort_line_plot(f, data, graph_svg) {
 			   .attr('x',this_w*0.78)
 			   .attr('y',35)
 			   .text(function(d) { return d[0].label; })
-			   .style('font-size',fant);
+			   .style('font-size',font);
 	graph_svg.append('rect')
 			 .datum(legend_labels)
 			   .attr('x',this_w*0.75)
@@ -615,7 +616,7 @@ function mort_line_plot(f, data, graph_svg) {
 			   .attr('x',this_w*0.78)
 			   .attr('y',50)
 			   .text(function(d) { return d[1].label; })
-			   .style('font-size',fant);
+			   .style('font-size',font);
 
 	// this is just a test object to confirm an image appears
 	// graph_svg.append('circle').attr('cx',30).attr('cy',30).attr('r',20);
