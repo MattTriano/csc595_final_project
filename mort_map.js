@@ -373,11 +373,11 @@ function show_top_causes(f, top_n=5) {
 	var sorted_data = get_sorted_ctry_data(f);
 	var sorted_slice = sorted_data.slice(0,top_n);
 	var sorted_clean = [];
+	console.log(sorted_slice);
 	for (i=0; i<top_n; i++) {
 		sorted_slice[i].key = sorted_slice[i].key.replaceAll('_', ' ');
+		sorted_slice[i].value = format_value(sorted_slice[i].value);
 	}
-	console.log(sorted_slice);
-	console.log(sorted_clean);
 	var detailsHtml = Mustache.render(template, sorted_slice);
 	d3.select('#data_table').html(detailsHtml);
 
