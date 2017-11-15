@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Causes of Mortality</title>
+    <link href="mort_map.css" rel="stylesheet" type="text/css">
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div class="container">
+      <div class='row'>
+        <h3 id='vis_title' class='six columns'>Causes of Mortality </h3>
+        <h3 class='three columns'></h3>
+        <h3 id="year_label" class='three columns'>2000<!-- </span> --> </h3>         
+      </div>
+      <!-- <div class='row'>
+        <h6 class='six columns'>Mortality Cause Selector:</h6>
+        <h6 class='three columns'>Scale Color By:</h6>
+        <h6 class='three columns'>Year Selector</h6>
+      </div> -->
+      <div class='row'>
+        <select id="select_key" class='six columns'>
+          <option value="All_Causes" selected="selected">All Causes</option>
+            <option value="Communicable_maternal_perinatal_and_nutritional_conditions">&emsp;Communicable, maternal, perinatal and nutritional conditions</option>
+              <option value="Infectious_and_parasitic_diseases">&emsp;&emsp;Infectious and parasitic diseases</option>
+                <option value="Tuberculosis">&emsp;&emsp;&emsp;Tuberculosis</option>
+                <option value="STDs_excluding_HIV">&emsp;&emsp;&emsp;STDs excluding HIV</option>
+                  <option value="Syphilis">&emsp;&emsp;&emsp;&emsp;Syphilis</option>
+                  <option value="Chlamydia">&emsp;&emsp;&emsp;&emsp;Chlamydia</option>
+                  <option value="Gonorrhoea">&emsp;&emsp;&emsp;&emsp;Gonorrhoea</option>
+                  <option value="Trichomoniasis">&emsp;&emsp;&emsp;&emsp;Trichomoniasis</option>
+                  <option value="Genital_herpes">&emsp;&emsp;&emsp;&emsp;Genital herpes</option>
+                  <option value="Other_STDs">&emsp;&emsp;&emsp;&emsp;Other STDs</option>
+              <option value="HIV/AIDS">&emsp;&emsp;&emsp;HIV/AIDS</option>
+              <option value="Diarrhoeal_diseases">&emsp;&emsp;&emsp;Diarrhoeal diseases</option>
+              <option value="Childhood-cluster_diseases">&emsp;&emsp;&emsp;Childhood-cluster diseases</option>
+                <option value="Whooping_cough">&emsp;&emsp;&emsp;&emsp;Whooping cough</option>
+                <option value="Diphtheria">&emsp;&emsp;&emsp;&emsp;Diphtheria</option>
+                <option value="Measles">&emsp;&emsp;&emsp;&emsp;Measles</option>
+                <option value="Tetanus">&emsp;&emsp;&emsp;&emsp;Tetanus</option>
+              <option value="Meningitis">&emsp;&emsp;&emsp;Meningitis</option>
+              <option value="Encephalitis">&emsp;&emsp;&emsp;Encephalitis</option>
+              <option value="Hepatitis">&emsp;&emsp;&emsp;Hepatitis</option>
+                <option value="Acute_hepatitis_A">&emsp;&emsp;&emsp;&emsp;Acute hepatitis A</option>
+                <option value="Acute_hepatitis_B">&emsp;&emsp;&emsp;&emsp;Acute hepatitis B</option>
+                <option value="Acute_hepatitis_C">&emsp;&emsp;&emsp;&emsp;Acute hepatitis C</option>
+                <option value="Acute_hepatitis_E">&emsp;&emsp;&emsp;&emsp;Acute hepatitis E</option>
+                <option value="Cirrhosis_due_to_hepatitis_B">&emsp;&emsp;&emsp;&emsp;Cirrhosis due to hepatitis B</option>
+                <option value="Cirrhosis_due_to_hepatitis_C">&emsp;&emsp;&emsp;&emsp;Cirrhosis due to hepatitis C</option>
+                <option value="Liver_cancer_secondary_to_hepatitis_B">&emsp;&emsp;&emsp;&emsp;Liver cancer secondary to hepatitis B</option>
+                <option value="Liver_cancer_secondary_to_hepatitis_C">&emsp;&emsp;&emsp;&emsp;Liver cancer secondary to hepatitis C</option>
+
+              <option value="Parasitic_and_vector_diseases">&emsp;&emsp;&emsp;Parasitic and vector diseases</option>
+                <option value="Malaria">&emsp;&emsp;&emsp;&emsp;Malaria</option>
+                <option value="African_trypanosomiasis">&emsp;&emsp;&emsp;&emsp;African trypanosomiasis</option>
+                <option value="Chagas_disease">&emsp;&emsp;&emsp;&emsp;Chagas disease</option>
+                <option value="Schistosomiasis">&emsp;&emsp;&emsp;&emsp;Schistosomiasis</option>
+                <option value="Leishmaniasis">&emsp;&emsp;&emsp;&emsp;Leishmaniasis</option>
+                <option value="Lymphatic_filariasis">&emsp;&emsp;&emsp;&emsp;Lymphatic filariasis</option>
+                <option value="Onchocerciasis">&emsp;&emsp;&emsp;&emsp;Onchocerciasis</option>
+                <option value="Cysticercosis">&emsp;&emsp;&emsp;&emsp;Cysticercosis</option>
+                <option value="Echinococcosis">&emsp;&emsp;&emsp;&emsp;Echinococcosis</option>
+                <option value="Dengue">&emsp;&emsp;&emsp;&emsp;Dengue</option>
+                <option value="Trachoma">&emsp;&emsp;&emsp;&emsp;Trachoma</option>
+                <option value="Yellow_fever">&emsp;&emsp;&emsp;&emsp;Yellow fever</option>
+                <option value="Rabies">&emsp;&emsp;&emsp;&emsp;Rabies</option>
+              <option value="Intestinal_nematode_infections">&emsp;&emsp;&emsp;Intestinal nematode infections</option>
+                <option value="Ascariasis">&emsp;&emsp;&emsp;&emsp;Ascariasis</option>
+                <option value="Trichuriasis">&emsp;&emsp;&emsp;&emsp;Trichuriasis</option>
+                <option value="Hookworm_disease">&emsp;&emsp;&emsp;&emsp;Hookworm disease</option>
+                <option value="Food-bourne_trematodes">&emsp;&emsp;&emsp;&emsp;Food-bourne trematodes</option>
+              <option value="Leprosy">&emsp;&emsp;&emsp;Leprosy</option>
+              <option value="Other_infectious_diseases">&emsp;&emsp;&emsp;Other infectious diseases</option>
+            <option value="Respiratory_infections_">&emsp;&emsp;Respiratory infections </option>
+              <option value="Lower_respiratory_infections">&emsp;&emsp;&emsp;Lower respiratory infections</option>
+              <option value="Upper_respiratory_infections">&emsp;&emsp;&emsp;Upper respiratory infections</option>
+              <option value="Otitis_media">&emsp;&emsp;&emsp;Otitis media</option>
+            <option value="Maternal_conditions">&emsp;&emsp;Maternal conditions</option>
+            <option value="Neonatal_conditions">&emsp;&emsp;Neonatal conditions</option>
+              <option value="Preterm_birth_complications">&emsp;&emsp;&emsp;Preterm birth complications</option>
+              <option value="Birth_asphyxia_and_birth_trauma">&emsp;&emsp;&emsp;Birth asphyxia and birth trauma</option>
+              <option value="Neonatal_sepsis_and_infections">&emsp;&emsp;&emsp;Neonatal sepsis and infections</option>
+              <option value="Other_neonatal_conditions">&emsp;&emsp;&emsp;Other neonatal conditions</option>
+            <option value="Nutritional_deficiencies">&emsp;&emsp;Nutritional deficiencies</option>
+              <option value="Protein-energy_malnutrition">&emsp;&emsp;&emsp;Protein-energy malnutrition</option>
+              <option value="Iodine_deficiency">&emsp;&emsp;&emsp;Iodine deficiency</option>
+              <option value="Vitamin_A_deficiency">&emsp;&emsp;&emsp;Vitamin A deficiency</option>
+              <option value="Iron-deficiency_anaemia">&emsp;&emsp;&emsp;Iron-deficiency anaemia</option>
+              <option value="Other_nutritional_deficiencies">&emsp;&emsp;&emsp;Other nutritional deficiencies</option>
+
+          <option value="Noncommunicable_diseases">&emsp;Noncommunicable diseases</option>
+            <option value="Malignant_neoplasms">&emsp;&emsp;Malignant neoplasms</option>
+              <option value="Mouth_and_oropharynx_cancers">&emsp;&emsp;&emsp;Mouth and oropharynx cancers</option>
+                <option value="Lip_and_oral_cavity">&emsp;&emsp;&emsp;&emsp;Lip and oral cavity</option>
+                <option value="Nasopharynx">&emsp;&emsp;&emsp;&emsp;Nasopharynx</option>
+                <option value="Other_pharynx">&emsp;&emsp;&emsp;&emsp;Other pharynx</option>
+              <option value="Oesophagus_cancer">&emsp;&emsp;&emsp;Oesophagus cancer</option>
+              <option value="Stomach_cancer">&emsp;&emsp;&emsp;Stomach cancer</option>
+              <option value="Colon_and_rectum_cancers">&emsp;&emsp;&emsp;Colon and rectum cancers</option>
+              <option value="Liver_cancer">&emsp;&emsp;&emsp;Liver cancer</option>
+                <option value="Other_liver_cancer">&emsp;&emsp;&emsp;&emsp;Other liver cancer</option>
+
+              <option value="Pancreas_cancer">&emsp;&emsp;&emsp;Pancreas cancer</option>
+              <option value="Trachea_bronchus_lung_cancers">&emsp;&emsp;&emsp;Trachea, bronchus, lung cancers</option>
+              <option value="Melanoma_and_other_skin_cancers">&emsp;&emsp;&emsp;Melanoma and other skin cancers</option>
+                <option value="Malignant_skin_melanoma">&emsp;&emsp;&emsp;&emsp;Malignant skin melanoma</option>
+                <option value="Non-melanoma_skin_cancer">&emsp;&emsp;&emsp;&emsp;Non-melanoma skin cancer</option>
+              <option value="Breast_cancer">&emsp;&emsp;&emsp;Breast cancer</option>
+              <option value="Cervix_uteri_cancer">&emsp;&emsp;&emsp;Cervix uteri cancer</option>
+              <option value="Corpus_uteri_cancer">&emsp;&emsp;&emsp;Corpus uteri cancer</option>
+              <option value="Ovary_cancer">&emsp;&emsp;&emsp;Ovary cancer</option>
+              <option value="Prostate_cancer">&emsp;&emsp;&emsp;Prostate cancer</option>
+              <option value="Testicular_cancer">&emsp;&emsp;&emsp;Testicular cancer</option>
+              <option value="Kidney_cancer">&emsp;&emsp;&emsp;Kidney cancer</option>
+              <option value="Bladder_cancer">&emsp;&emsp;&emsp;Bladder cancer</option>
+              <option value="Brain_and_nervous_system_cancers">&emsp;&emsp;&emsp;Brain and nervous system cancers</option>
+              <option value="Gallbladder_and_biliary_tract_cancer">&emsp;&emsp;&emsp;Gallbladder and biliary tract cancer</option>
+              <option value="Larynx_cancer">&emsp;&emsp;&emsp;Larynx cancer</option>
+              <option value="Thyroid_cancer">&emsp;&emsp;&emsp;Thyroid cancer</option>
+              <option value="Mesothelioma">&emsp;&emsp;&emsp;Mesothelioma</option>
+              <option value="Lymphomas_multiple_myeloma">&emsp;&emsp;&emsp;Lymphomas, multiple myeloma</option>
+                <option value="Hodgkin_lymphoma">&emsp;&emsp;&emsp;&emsp;Hodgkin lymphoma</option>
+                <option value="Non-Hodgkin_lymphoma">&emsp;&emsp;&emsp;&emsp;Non-Hodgkin lymphoma</option>
+                <option value="Multiple_myeloma">&emsp;&emsp;&emsp;&emsp;Multiple myeloma</option>
+              <option value="Leukaemia">&emsp;&emsp;&emsp;Leukaemia</option>
+              <option value="Other_malignant_neoplasms">&emsp;&emsp;&emsp;Other malignant neoplasms</option>
+            <option value="Other_neoplasms">&emsp;&emsp;Other neoplasms</option>
+            <option value="Diabetes_mellitus">&emsp;&emsp;Diabetes mellitus</option>
+            <option value="Endocrine_blood_immune_disorders">Endocrine, blood, immune disorders</option>
+              <option value="Thalassaemias">&emsp;&emsp;&emsp;Thalassaemias</option>
+              <option value="Sickle_cell_disorders_and_trai">&emsp;&emsp;&emsp;Sickle cell disorders and trait</option>
+              <option value="Other_haemoglobinopathies_and_haemolytic_anaemias">&emsp;&emsp;&emsp;Other haemoglobinopathies and haemolytic anaemias</option>
+              <option value="Other_endocrine_blood_and_immune_disorders">&emsp;&emsp;&emsp;Other endocrine, blood and immune disorders</option>
+            <option value="Mental_and_substance_use_disorders">&emsp;&emsp;Mental and substance use disorders</option>
+              <option value="Depressive_disorders">&emsp;&emsp;&emsp;Depressive disorders</option>
+                <option value="Major_depressive_disorder">&emsp;&emsp;&emsp;&emsp;Major depressive disorder</option>
+                <option value="Dysthymia">&emsp;&emsp;&emsp;&emsp;Dysthymia</option>
+              <option value="Bipolar_disorder">&emsp;&emsp;&emsp;Bipolar disorder</option>
+              <option value="Schizophrenia">&emsp;&emsp;&emsp;Schizophrenia</option>
+              <option value="Alcohol_use_disorders">&emsp;&emsp;&emsp;Alcohol use disorders</option>
+                <option value="Liver_cancer_secondary_to_alcohol_use">&emsp;&emsp;&emsp;&emsp;Liver cancer secondary to alcohol use</option>
+                <option value="Cirrhosis_due_to_alcohol_use">&emsp;&emsp;&emsp;&emsp;Cirrhosis due to alcohol use</option>
+              <option value="Drug_use_disorders">&emsp;&emsp;&emsp;Drug use disorders</option>
+                <option value="Opioid_use_disorders">&emsp;&emsp;&emsp;&emsp;Opioid use disorders</option>
+                <option value="Cocaine_use_disorders">&emsp;&emsp;&emsp;&emsp;Cocaine use disorders</option>
+                <option value="Amphetamine_use_disorders">&emsp;&emsp;&emsp;&emsp;Amphetamine use disorders</option>
+                <option value="Cannabis_use_disorders">&emsp;&emsp;&emsp;&emsp;Cannabis use disorders</option>
+                <option value="Other_drug_use_disorders">&emsp;&emsp;&emsp;&emsp;Other drug use disorders</option>
+              <option value="Anxiety_disorders">&emsp;&emsp;&emsp;Anxiety disorders</option>
+              <option value="Eating_disorders">&emsp;&emsp;&emsp;Eating disorders</option>
+              <option value="Autism_and_Asperger_syndrome">&emsp;&emsp;&emsp;Autism and Asperger syndrome</option>
+              <option value="Childhood_behavioural_disorders">&emsp;&emsp;&emsp;Childhood behavioural disorders</option>
+                <option value="Attention_deficit/hyperactivity_syndrome">&emsp;&emsp;&emsp;&emsp;Attention deficit/hyperactivity syndrome</option>
+                <option value="Conduct_disorder">&emsp;&emsp;&emsp;&emsp;Conduct disorder</option>
+              <option value="Idiopathic_intellectual_disability">&emsp;&emsp;&emsp;Idiopathic intellectual disability</option>
+              <option value="Other_mental_and_behavioural_disorders">&emsp;&emsp;&emsp;Other mental and behavioural disorders</option>
+            <option value="Neurological_conditions">&emsp;&emsp;Neurological conditions</option>
+              <option value="Alzheimer_disease_and_other_dementias">&emsp;&emsp;&emsp;Alzheimer disease and other dementias</option>
+              <option value="Parkinson_disease">&emsp;&emsp;&emsp;Parkinson disease</option>
+              <option value="Epilepsy">&emsp;&emsp;&emsp;Epilepsy</option>
+              <option value="Multiple_sclerosis">&emsp;&emsp;&emsp;Multiple sclerosis</option>
+              <option value="Migraine">&emsp;&emsp;&emsp;Migraine</option>
+              <option value="Non-migraine_headache">&emsp;&emsp;&emsp;Non-migraine headache</option>
+              <option value="Other_neurological_conditions">&emsp;&emsp;&emsp;Other neurological conditions</option>
+            <option value="Sense_organt_diseases">&emsp;&emsp;Sense organ diseases</option>
+              <option value="Glaucoma">&emsp;&emsp;&emsp;Glaucoma</option>
+              <option value="Cataracts">&emsp;&emsp;&emsp;Cataracts</option>
+              <option value="Uncorrected_refractive_errors">&emsp;&emsp;&emsp;Uncorrected refractive errors</option>
+              <option value="Macular_degeneration">&emsp;&emsp;&emsp;Macular degeneration</option>
+              <option value="Other_vision_loss">&emsp;&emsp;&emsp;Other vision loss</option>
+              <option value="Other_hearing_loss">&emsp;&emsp;&emsp;Other hearing loss</option>
+              <option value="Other_sense_organ_disorders">&emsp;&emsp;&emsp;Other sense organ disorders</option>
+            <option value="Cardiovascular_diseases">&emsp;&emsp;Cardiovascular diseases</option>
+              <option value="Rheumatic_heart_disease">&emsp;&emsp;&emsp;Rheumatic heart disease</option>
+              <option value="Hypertensive_heart_disease">&emsp;&emsp;&emsp;Hypertensive heart disease</option>
+              <option value="Ischaemic_heart_disease">&emsp;&emsp;&emsp;Ischaemic heart disease</option>
+              <option value="Stroke">&emsp;&emsp;&emsp;Stroke</option>
+              <option value="Haemorrhagic_stroke">&emsp;&emsp;&emsp;Haemorrhagic stroke</option>
+              <option value="Ischaemic_stroke">&emsp;&emsp;&emsp;Ischaemic stroke</option>
+              <option value="Cardiomyopathy_myocarditis_endocarditis">&emsp;&emsp;&emsp;Cardiomyopathy, myocarditis, endocarditis</option>
+              <option value="Other_circulatory_diseases">&emsp;&emsp;&emsp;Other circulatory diseases</option>
+            <option value="Respiratory_diseases">&emsp;&emsp;Respiratory diseases</option>
+              <option value="Chronic_obstructive_pulmonary_disease">&emsp;&emsp;&emsp;Chronic obstructive pulmonary disease</option>
+              <option value="Asthma">&emsp;&emsp;&emsp;Asthma</option>
+              <option value="Other_respiratory_diseases">&emsp;&emsp;&emsp;Other respiratory diseases</option>
+            <option value="Digestive_diseases">&emsp;&emsp;Digestive diseases</option>
+              <option value="Peptic_ulcer_disease">&emsp;&emsp;&emsp;Peptic ulcer disease</option>
+              <option value="Cirrhosis_of_the_liver">&emsp;&emsp;&emsp;Cirrhosis of the liver</option>
+              <option value="Other_liver_cirrhosis">&emsp;&emsp;&emsp;Other liver cirrhosis</option>
+              <option value="Appendicitis">&emsp;&emsp;&emsp;Appendicitis</option>
+              <option value="Gastritis_and_duodenitis">&emsp;&emsp;&emsp;Gastritis and duodenitis</option>
+              <option value="Paralytic_ileus_and_intestinal_obstruction">&emsp;&emsp;&emsp;Paralytic ileus and intestinal obstruction</option>
+              <option value="Inflammatory_bowel_disease">&emsp;&emsp;&emsp;Inflammatory bowel disease</option>
+              <option value="Gallbladder_and_biliary_diseases">&emsp;&emsp;&emsp;Gallbladder and biliary diseases</option>
+              <option value="Pancreatitis">&emsp;&emsp;&emsp;Pancreatitis</option>
+              <option value="Other_digestive_diseases">&emsp;&emsp;&emsp;Other digestive diseases</option>
+            <option value="Genitourinary_diseases">&emsp;&emsp;Genitourinary diseases</option>
+              <option value="Kidney_diseases">&emsp;&emsp;&emsp;Kidney diseases</option>
+                <option value="Acute_glomerulonephritis">&emsp;&emsp;&emsp;&emsp;Acute glomerulonephritis</option>
+                <option value="Chronic_kidney_disease_due_to_diabetes">&emsp;&emsp;&emsp;&emsp;Chronic kidney disease due to diabetes</option>
+                <option value="Other_chronic_kidney_disease">&emsp;&emsp;&emsp;&emsp;Other chronic kidney disease</option>
+              <option value="Benign_prostatic_hyperplasia">&emsp;&emsp;&emsp;Benign prostatic hyperplasia</option>
+              <option value="Urolithiasis">&emsp;&emsp;&emsp;Urolithiasis</option>
+              <option value="Other_urinary_diseases">&emsp;&emsp;&emsp;Other urinary diseases</option>
+              <option value="Infertility">&emsp;&emsp;&emsp;Infertility</option>
+              <option value="Gynecological_diseases">&emsp;&emsp;&emsp;Gynecological diseases</option>
+            <option value="Skin_diseases">&emsp;&emsp;Skin diseases</option>
+            <option value="Musculoskeletal_diseases">&emsp;&emsp;Musculoskeletal diseases</option>
+              <option value="Rheumatoid_arthritis">&emsp;&emsp;&emsp;Rheumatoid arthritis</option>
+              <option value="Osteoarthritis">&emsp;&emsp;&emsp;Osteoarthritis</option>
+              <option value="Gout">&emsp;&emsp;&emsp;Gout</option>
+              <option value="Back_and_neck_pain">&emsp;&emsp;&emsp;Back and neck pain</option>
+              <option value="Other_musculoskeletal_disorders">&emsp;&emsp;&emsp;Other musculoskeletal disorders</option>
+            <option value="Congenital_anomalies">&emsp;&emsp;Congenital anomalies</option>
+              <option value="Neural_tube_defects">&emsp;&emsp;&emsp;Neural tube defects</option>
+              <option value="Cleft_lip_and_cleft_palate">&emsp;&emsp;&emsp;Cleft lip and cleft palate</option>
+              <option value="Down_syndrome">&emsp;&emsp;&emsp;Down syndrome</option>
+              <option value="Congenital_heart_anomalies">&emsp;&emsp;&emsp;Congenital heart anomalies</option>
+              <option value="Other_chromosomal_anomalies">&emsp;&emsp;&emsp;Other chromosomal anomalies</option>
+              <option value="Other_congenital_anomalies">&emsp;&emsp;&emsp;Other congenital anomalies</option>
+            <option value="Oral_conditions">&emsp;&emsp;Oral conditions</option>
+              <option value="Dental_caries">&emsp;&emsp;&emsp;Dental caries</option>
+              <option value="Periodontal_disease">&emsp;&emsp;&emsp;Periodontal disease</option>
+              <option value="Edentulism">&emsp;&emsp;&emsp;Edentulism</option>
+              <option value="Other_oral_disorders">&emsp;&emsp;&emsp;Other oral disorders</option>
+            <option value="Sudden_infant_death_syndrome">&emsp;&emsp;Sudden infant death syndrome</option>
+          <option value="Injuries">&emsp;Injuries</option>
+              <option value="Unintentional_injuries">&emsp;&emsp;Unintentional injuries</option>
+                <option value="Road_injury">&emsp;&emsp;&emsp;Road injury</option>
+                <option value="Poisonings">&emsp;&emsp;&emsp;Poisonings</option>
+                <option value="Falls">&emsp;&emsp;&emsp;Falls</option>
+                <option value="Fire_heat_and_hot_substances">&emsp;&emsp;&emsp;Fire, heat and hot substances</option>
+                <option value="Drowning">&emsp;&emsp;&emsp;Drowning</option>
+                <option value="Exposure_to_mechanical_forces">&emsp;&emsp;&emsp;Exposure to mechanical forces</option>
+                <option value="Natural_disasters">&emsp;&emsp;&emsp;Natural disasters</option>
+                <option value="Other_unintentional_injuries">&emsp;&emsp;&emsp;Other unintentional injuries</option>
+              <option value="Intentional_injuries">&emsp;&emsp;Intentional injuries</option>
+                <option value="Self-harm">&emsp;&emsp;&emsp;Self-harm</option>
+                <option value="Interpersonal_violence">&emsp;&emsp;&emsp;Interpersonal violence</option>
+                <option value="Collective_violence_and_legal_intervention">&emsp;&emsp;&emsp;Collective violence and legal intervention</option>
+        </select>             
+        <select id='select_colorstyle' class='three columns'>
+          <option value='by_all_years' selected='selected'>Scale Color By All Years</option>
+          <option value='by_sel_year'>Scale Color By Selected Year</option>
+        </select>
+          <input type='range' min='2000' max='2015' value='2000' class='slider two columns' id='year_slct'>
+      </div>
+
+        <div id="choropleth" class='twelve columns'></div>
+        <div id="legend"></div>
+        <div id="chart_titles" class="hidden row"></div>
+        <div id="supplemental_graphs" class="hidden row">
+          <div id="sup_graph1" class="hidden six columns">
+            <div id="sg1_legend" class="hidden"></div>
+          </div>
+          <div id="data_table" class="hidden six columns">
+            <script id="template" type="x-tmpl-mustache">
+              <table>
+              <tr>
+                <th> Cause Name </th>
+                <td> Avg Deaths per 100k Pop</td>
+              </tr>
+              {{ #.}}
+              <tr>
+              <th> {{ key }}</th>
+              <td>{{ value }}</td>
+              </tr>
+              
+              {{/.}}
+              </table>
+            </script>
+          </div>
+        </div>
+        <div id="initial">
+<!--           <h5>Instructions</h5> -->
+          <ul>
+            <li>Change the mortality cause using the dropdown above the map.</li>
+            <li>Click a country to see death rates over time and top causes of death</li>
+            <li>Drag the Slider (or click it and use arrow keys) to change the year</li>
+          </ul>
+        </div>
+        <div class="footer">
+          <strong>Data Sources:</strong>Data from the <a href="http://www.who.int/healthinfo/statistics/mortality_rawdata/en/">World Health Organization</a> and normalized by <a href="https://data.worldbank.org/data-catalog/population-projection-tables">World Bank Population Data</a>. More details available in our <a href="https://github.com/MattTriano/csc595_final_project">project repo</a>
+        </div>
+      </div>
+        
+
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="//d3js.org/d3-geo-projection.v1.min.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
+        <script src="mort_map.js"></script> 
+  </body>
+</html>
