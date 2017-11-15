@@ -335,11 +335,9 @@ function update_legend() {
 }
 
 function clicked(d) {
-	if (active.node() === this) return reset();
+	if (active.node() === this) return reset(); 
 	active.classed("active", false);
 	active = d3.select(this).classed("active", true);
-	console.log(active._groups[0][0].__data__.id);
-	console.log(d.id);
 
 	var bounds = path.bounds(d),
 			dx = bounds[1][0] - bounds[0][0],
@@ -374,14 +372,24 @@ var graph2_svg = d3.select('#data_table')
 function show_top_causes(f, top_n=5) {
 	var sorted_data = get_sorted_ctry_data(f);
 	var sorted_slice = sorted_data.slice(0,top_n);
+	var sorted_clean = [];
+	for (i=0; i<top_n; i++) {
+		sorted_slice[i].key = sorted_slice[i].key.replaceAll('_', ' ');
+	}
+	console.log(sorted_slice);
+	console.log(sorted_clean);
 	var detailsHtml = Mustache.render(template, sorted_slice);
 	d3.select('#data_table').html(detailsHtml);
 
 }
 
+String.prototype.replaceAll = function(old, new_char) {
+    var this_string = this;
+    return this_string.split(old).join(new_char);
+};
+
 // 
 function tabulate_top_causes(d_slice, graph_svg) {
-	console.log(d_slice);
 	var table = graph_svg.append('foreignObject')
 						 .attr('width', graph_svg.width)
 						 .attr('height', graph_svg.height)
@@ -428,7 +436,6 @@ function show_tooltip(f) {
 	var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
 	var top = mouse[1] + 35;
 	var tt_deaths = format_value(get_value_of_year_datum(id, current_year, current_key));
-	console.log(format_value(tt_deaths));
 	tooltip.classed('hidden', false)
 			.attr("style", "left:" + left + "px; top:" + top + "px")
 			.html(ctry_name + '<br>' +
