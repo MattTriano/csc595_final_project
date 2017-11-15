@@ -13,7 +13,7 @@ var ctry_color;
 // Initializing a default key and default year
 var current_key = 'All_Causes';
 var current_year = '2000';
-var current_colorscale = 'by_sel_year';
+var current_colorscale = 'by_all_year';
 
 // This prepares a Mustache parser for the table of top causes of mortality
 var template = d3.select('#template').html();
@@ -427,9 +427,13 @@ function show_tooltip(f) {
 	var ctry_name = get_country_name(f); 
 	var left = Math.min( w - 4 * ctry_name.length, mouse[0] + 5);
 	var top = mouse[1] + 35;
+	var tt_deaths = format_value(get_value_of_year_datum(id, current_year, current_key));
+	console.log(format_value(tt_deaths));
 	tooltip.classed('hidden', false)
 			.attr("style", "left:" + left + "px; top:" + top + "px")
-			.html(ctry_name);
+			.html(ctry_name + '<br>' +
+			'Death rate by ' + current_key.replace('_', ' ') + ': '
+			+ tt_deaths);
 }
 
 function hide_tooltip() {
@@ -453,6 +457,9 @@ function get_value_of_datum(d, yr=current_year) {
 	return d && d['$'.concat(current_key)][yr];
 }
 
+// f: iso3 country identifier
+// yr: a year in the domain [2000, 2015]
+// ck: key to get data for (default is current_key)
 function get_value_of_year_datum(f, yr, ck=current_key) {
 	yr = parseInt(yr);
 	return mort_data['$'.concat(f)] && mort_data['$'.concat(f)]['$'.concat(ck)][yr];

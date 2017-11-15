@@ -90,7 +90,7 @@ g.features path:hover {
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 25px;
+    width: 15px;
     height: 38px;
     background: #4CAF50;
     cursor: pointer;
@@ -104,4 +104,7 @@ g.features path:hover {
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
+}
+#year_slct {
+	transform: translateY(0.7rem);
 }
